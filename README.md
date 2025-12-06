@@ -1,4 +1,4 @@
-```markdown
+```
 # Substrate Visualizer
 
 An interactive generative art visualization optimized for **KDE Plasma HTML Wallpapers**. Watch organic crack patterns grow and branch across your desktop with particle effects and smooth animations.
