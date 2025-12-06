@@ -1,3 +1,26 @@
+// Spark object pool for performance
+const SparkPool = {
+    pool: [],
+    maxSize: 1000,
+    
+    get: function(x, y, color) {
+        let spark;
+        if (this.pool.length > 0) {
+            spark = this.pool.pop();
+            spark.reset(x, y, color);
+        } else {
+            spark = new Spark(x, y, color);
+        }
+        return spark;
+    },
+    
+    release: function(spark) {
+        if (this.pool.length < this.maxSize) {
+            this.pool.push(spark);
+        }
+    }
+};
+
 function Spark(x, y, color) {
     this.x = x; 
     this.y = y; 
@@ -10,6 +33,20 @@ function Spark(x, y, color) {
     this.life = CONFIG.SPARK_LIFETIME;
     this.maxLife = CONFIG.SPARK_LIFETIME;
 }
+
+// Reset spark for reuse
+Spark.prototype.reset = function(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.color = color;
+    this.colorKey = `${color[0]},${color[1]},${color[2]}`;
+    const angle = Math.random() * Math.PI * 2;
+    const speed = CONFIG.SPARK_SPEED_MIN + Math.random() * (CONFIG.SPARK_SPEED_MAX - CONFIG.SPARK_SPEED_MIN);
+    this.vx = Math.cos(angle) * speed;
+    this.vy = Math.sin(angle) * speed;
+    this.life = CONFIG.SPARK_LIFETIME;
+    this.maxLife = CONFIG.SPARK_LIFETIME;
+};
 
 // Gradient cache to avoid recreating gradients every frame
 Spark.gradientCache = {};
