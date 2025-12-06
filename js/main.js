@@ -70,6 +70,23 @@ window.onload = function() {
         // Only resize if dimensions actually changed
         if (newWidth === canvasWidth && newHeight === canvasHeight) return;
         
+        // Store old canvas content
+        const oldCanvas = document.createElement('canvas');
+        oldCanvas.width = canvasWidth;
+        oldCanvas.height = canvasHeight;
+        const oldCtx = oldCanvas.getContext('2d');
+        oldCtx.drawImage(canvas, 0, 0);
+        
+        const oldGlowCanvas = document.createElement('canvas');
+        oldGlowCanvas.width = canvasWidth;
+        oldGlowCanvas.height = canvasHeight;
+        const oldGlowCtx = oldGlowCanvas.getContext('2d');
+        oldGlowCtx.drawImage(glowCanvas, 0, 0);
+        
+        const oldWidth = canvasWidth;
+        const oldHeight = canvasHeight;
+        
+        // Update dimensions
         canvasWidth = newWidth;
         canvasHeight = newHeight;
         canvas.width = canvasWidth;
@@ -83,12 +100,48 @@ window.onload = function() {
         glowCtx.imageSmoothingEnabled = true;
         glowCtx.imageSmoothingQuality = 'high';
         
-        // Clear and reset
+        // Fill new area with background color
         ctx.fillStyle = `rgb(${CONFIG.BG_COLOR[0]},${CONFIG.BG_COLOR[1]},${CONFIG.BG_COLOR[2]})`;
         ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-        glowCtx.clearRect(0, 0, canvasWidth, canvasHeight);
         
-        reset();
+        // Restore old content
+        ctx.drawImage(oldCanvas, 0, 0);
+        glowCtx.drawImage(oldGlowCanvas, 0, 0);
+        
+        // Create new larger grid and copy old data
+        const newGrid = new Array(canvasWidth * canvasHeight).fill(10001);
+        for (let y = 0; y < Math.min(oldHeight, canvasHeight); y++) {
+            for (let x = 0; x < Math.min(oldWidth, canvasWidth); x++) {
+                const oldIdx = y * oldWidth + x;
+                const newIdx = y * canvasWidth + x;
+                newGrid[newIdx] = cgrid[oldIdx];
+            }
+        }
+        cgrid = newGrid;
+        
+        // Update crack references to new grid and dimensions
+        for (let i = 0; i < cracks.length; i++) {
+            cracks[i].canvasWidth = canvasWidth;
+            cracks[i].canvasHeight = canvasHeight;
+            cracks[i].cgrid = cgrid;
+        }
+        
+        // Remove cracks that are now out of bounds
+        for (let i = cracks.length - 1; i >= 0; i--) {
+            if (cracks[i].x < 0 || cracks[i].x >= canvasWidth || 
+                cracks[i].y < 0 || cracks[i].y >= canvasHeight) {
+                cracks.splice(i, 1);
+            }
+        }
+        
+        // Remove sparks that are now out of bounds
+        for (let i = sparks.length - 1; i >= 0; i--) {
+            if (sparks[i].x < 0 || sparks[i].x >= canvasWidth || 
+                sparks[i].y < 0 || sparks[i].y >= canvasHeight) {
+                SparkPool.release(sparks[i]);
+                sparks.splice(i, 1);
+            }
+        }
     }
 
     // Debounced resize handler to avoid excessive resets
