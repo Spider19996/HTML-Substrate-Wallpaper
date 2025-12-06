@@ -19,9 +19,13 @@ if (!configFile.startsWith('config/')) configFile = 'config/' + configFile;
 const script = document.createElement('script');
 script.src = configFile;
 script.onload = () => console.log('Config loaded:', configFile);
-script.onerror = () => console.error('Config failed:', configFile);
+script.onerror = () => {
+    console.error('Config failed to load:', configFile);
+    console.warn('Continuing with default config');
+};
 document.head.appendChild(script);
 </script>
+<script src="js/config-validator.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/spark.js"></script>
 <script src="js/crack.js"></script>
