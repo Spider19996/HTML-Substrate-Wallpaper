@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Substrate</title>
+<style>
+body { margin: 0; padding: 0; overflow: hidden; background: #fff; }
+CANVAS { display: block; }
+</style>
+</head>
+<body>
+<CANVAS id="canvas"></CANVAS>
+<script>
+// ========== CONFIGURATION ==========
+const CONFIG = {
+    STEP: 0.7,                     // Line speed (Original: 0.42)
+    INITIAL_CRACKS: 3,             // Number of starting lines (Original: 3)
+    MAX_CRACKS: 100,               // Maximum concurrent lines (Original: no limit)
+    CIRCLE_PERCENT: 40,            // Probability for curves in % (Original: 10)
+    GRAINS: 64,                    // Number of sand particles (Original: 64)
+    RESET_AFTER_SECONDS: 60,      // Auto-reset after X seconds (Original: no reset, 0 = disabled)
+    FADE_OUT_SECONDS: 3,           // Fade out duration before reset (0 = hard reset)
+    HARD_RESET_EVERY: 3,           // Complete fade to black after X soft resets (0 = never)
+    HARD_FADE_SECONDS: 2,          // Duration of complete fade to black
+    HARD_FADE_IN_SECONDS: 2,       // Duration of fade in after hard reset
+    LINE_WIDTH: 1,                 // Width of crack lines (Original: 1, higher = smoother but thicker)
+    OLED_MODE: true,               // OLED mode: black background, bright lines (Original: false)
+    
+    // Normal colors (current: vibrant)
+    FG_COLOR: [0, 0, 0],          // Line color RGB
+    BG_COLOR: [255, 255, 255],    // Background color RGB
+    COLORS: [                      // Sand colors RGB
+        [255, 50, 50],    // Bright red
+        [50, 255, 50],    // Bright green
+        [50, 50, 255],    // Bright blue
+        [255, 255, 0],    // Yellow
+        [255, 0, 255],    // Magenta
+        [0, 255, 255]     // Cyan
+    ],
+    
+    // Original Substrate colors (uncomment to use classic look):
+    // FG_COLOR: [0, 0, 0],
+    // BG_COLOR: [255, 255, 255],
+    // COLORS: [
+    //     [235, 244, 66],   // Yellow-beige
+    //     [247, 239, 237],  // Light beige
+    //     [84, 67, 63],     // Dark brown
+    //     [25, 22, 22],     // Very dark brown
+    //     [200, 200, 180],  // Light sand
+    //     [180, 200, 200]   // Light blue-gray
+    // ],
+    
+    // OLED colors (automatically used when OLED_MODE = true)
+    OLED_FG_COLOR: [255, 255, 255],      // White lines
+    OLED_BG_COLOR: [0, 0, 0],            // Black background
+    OLED_COLORS: [                        // Glowing colors
+        [0, 255, 255],    // Cyan
+        [255, 0, 255],    // Magenta
+        [255, 255, 0],    // Yellow
+        [0, 255, 128],    // Green-Cyan
+        [255, 128, 0],    // Orange
+        [128, 0, 255]     // Purple
+    ]
+};
+// ===================================
+
+window.onload = function() {
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
+    
+    let canvasWidth = window.innerWidth;
+    let canvasHeight = window.innerHeight;
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+    
+    // Enable antialiasing and smooth rendering
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    // Select color scheme based on OLED_MODE
+    const FG_COLOR = CONFIG.OLED_MODE ? CONFIG.OLED_FG_COLOR : CONFIG.FG_COLOR;
+    const BG_COLOR = CONFIG.OLED_MODE ? CONFIG.OLED_BG_COLOR : CONFIG.BG_COLOR;
+    const COLORS = CONFIG.OLED_MODE ? CONFIG.OLED_COLORS : CONFIG.COLORS;
+    
+    // Set body background
+    document.body.style.background = `rgb(${BG_COLOR[0]},${BG_COLOR[1]},${BG_COLOR[2]})`;
+
+    let cracks = [];
+    let cgrid = new Array(canvasWidth * canvasHeight).fill(10001);
+    let nextCrackId = 0;
+    let startTime = Date.now();
+    let fadingOut = false;
+    let fadeStartTime = 0;
+    let resetCounter = 0;
+    let hardFading = false;
+    let fadingIn = false;
+    let fadeInStartTime = 0;
+
+    function getCGrid(x, y) {
+        if (x < 0 || x >= canvasWidth || y < 0 || y >= canvasHeight) return 10001;
+        return cgrid[Math.floor(x) + Math.floor(y) * canvasWidth];
+    }
+
+    function setCGrid(x, y, val) {
+        if (x < 0 || x >= canvasWidth || y < 0 || y >= canvasHeight) return;
+        cgrid[Math.floor(x) + Math.floor(y) * canvasWidth] = val;
+    }
+
+    function getFadeProgress() {
+        if (!fadingOut) return 0;
+        const elapsed = (Date.now() - fadeStartTime) / 1000;
+        const duration = hardFading ? CONFIG.HARD_FADE_SECONDS : CONFIG.FADE_OUT_SECONDS;
+        return Math.min(elapsed / duration, 1);
+    }
+
+    function getFadeInProgress() {
+        if (!fadingIn) return 1;
+        const elapsed = (Date.now() - fadeInStartTime) / 1000;
+        return Math.min(elapsed / CONFIG.HARD_FADE_IN_SECONDS, 1);
+    }
+
+    function reset() {
+        cracks = [];
+        cgrid = new Array(canvasWidth * canvasHeight).fill(10001);
+        nextCrackId = 0;
+        startTime = Date.now();
+        fadingOut = false;
+        fadeStartTime = 0;
+        hardFading = false;
+        
+        for (let i = 0; i < CONFIG.INITIAL_CRACKS; i++) makeCrack();
+    }
+
+    function startFadeOut() {
+        fadingOut = true;
+        fadeStartTime = Date.now();
+        
+        // Check if hard reset is needed
+        if (CONFIG.HARD_RESET_EVERY > 0 && resetCounter >= CONFIG.HARD_RESET_EVERY - 1) {
+            hardFading = true;
+        } else {
+            hardFading = false;
+        }
+    }
+
+    function startFadeIn() {
+        fadingIn = true;
+        fadeInStartTime = Date.now();
+    }
+
+    function applyFadeOverlay() {
+        const fadeProgress = getFadeProgress();
+        
+        if (hardFading) {
+            // Fade completely to black
+            const alpha = 0.06; // Stronger fade for hard reset
+            ctx.fillStyle = `rgba(${BG_COLOR[0]},${BG_COLOR[1]},${BG_COLOR[2]},${alpha})`;
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+            
+            // When completely faded, clear and reset
+            if (fadeProgress >= 1) {
+                ctx.fillStyle = `rgb(${BG_COLOR[0]},${BG_COLOR[1]},${BG_COLOR[2]})`;
+                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+                resetCounter = 0;
+                reset();
+                startFadeIn();
+            }
+        } else {
+            // Normal soft fade
+            const alpha = 0.04;
+            ctx.fillStyle = `rgba(${BG_COLOR[0]},${BG_COLOR[1]},${BG_COLOR[2]},${alpha})`;
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+            
+            if (fadeProgress >= 1) {
+                resetCounter++;
+                reset();
+            }
+        }
+    }
+
+    function handleResize() {
+        const oldWidth = canvasWidth;
+        const oldHeight = canvasHeight;
+        const oldGrid = cgrid;
+        
+        canvasWidth = window.innerWidth;
+        canvasHeight = window.innerHeight;
+        
+        // Create temporary canvas to preserve content
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = oldWidth;
+        tempCanvas.height = oldHeight;
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.drawImage(canvas, 0, 0);
+        
+        // Resize main canvas
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+        
+        // Restore rendering settings
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        
+        // Fill new area with background
+        ctx.fillStyle = `rgb(${BG_COLOR[0]},${BG_COLOR[1]},${BG_COLOR[2]})`;
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        
+        // Draw old content
+        ctx.drawImage(tempCanvas, 0, 0);
+        
+        // Create new cgrid and copy old data
+        cgrid = new Array(canvasWidth * canvasHeight).fill(10001);
+        
+        // Copy old grid data
+        const copyWidth = Math.min(oldWidth, canvasWidth);
+        const copyHeight = Math.min(oldHeight, canvasHeight);
+        
+        for (let y = 0; y < copyHeight; y++) {
+            for (let x = 0; x < copyWidth; x++) {
+                const oldIndex = x + y * oldWidth;
+                const newIndex = x + y * canvasWidth;
+                cgrid[newIndex] = oldGrid[oldIndex];
+            }
+        }
+    }
+
+    // Debounced resize handler
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(handleResize, 100);
+    });
+
+    class Crack {
+        constructor() {
+            this.id = nextCrackId++;
+            this.x = Math.random() * canvasWidth;
+            this.y = Math.random() * canvasHeight;
+            this.t = Math.random() * 360;
+            this.curved = false;
+            this.degreesDrawn = 0;
+            this.sandG = Math.random() * 0.2 - 0.01;
+            this.sandP = 0;
+            this.sandColor = COLORS[Math.floor(Math.random() * COLORS.length)];
+            this.alive = true;
+            this.lastX = this.x;
+            this.lastY = this.y;
+            this.startCrack();
+        }
+        
+        startCrack() {
+            let found = false, timeout = 0, px = 0, py = 0;
+            while (!found && timeout < 1000) {
+                timeout++;
+                px = Math.floor(Math.random() * canvasWidth);
+                py = Math.floor(Math.random() * canvasHeight);
+                if (getCGrid(px, py) < 10000) found = true;
+            }
+            if (!found) {
+                px = Math.floor(this.x);
+                py = Math.floor(this.y);
+            }
+            const oldA = getCGrid(px, py);
+            let a = oldA + (Math.random() > 0.5 ? 90 : -90) + (Math.random() * 4 - 2);
+            if (Math.random() * 100 < CONFIG.CIRCLE_PERCENT) {
+                this.curved = true;
+                this.degreesDrawn = 0;
+                let r = 10 + Math.random() * (canvasWidth + canvasHeight) / 2;
+                if (Math.random() > 0.5) r = -r;
+                const radInc = CONFIG.STEP / r;
+                this.tInc = radInc * 180 / Math.PI;
+                this.ys = r * Math.sin(radInc);
+                this.xs = r * (1 - Math.cos(radInc));
+            }
+            this.x = px + 0.61 * Math.cos(a * Math.PI / 180);
+            this.y = py + 0.61 * Math.sin(a * Math.PI / 180);
+            this.lastX = this.x;
+            this.lastY = this.y;
+            this.t = a;
+        }
+        
+        regionColor() {
+            let rx = this.x, ry = this.y, openspace = true;
+            while (openspace) {
+                rx += 0.81 * Math.sin(this.t * Math.PI / 180);
+                ry -= 0.81 * Math.cos(this.t * Math.PI / 180);
+                const cx = Math.floor(rx), cy = Math.floor(ry);
+                if (cx < 0 || cx >= canvasWidth || cy < 0 || cy >= canvasHeight || getCGrid(cx, cy) <= 10000) {
+                    openspace = false;
+                }
+            }
+            this.sandG += Math.random() * 0.1 - 0.05;
+            this.sandG = Math.max(0, Math.min(1, this.sandG));
+            const w = this.sandG / (CONFIG.GRAINS - 1);
+            
+            // Only apply fade-in multiplier, not fade-out
+            const fadeMultiplier = fadingIn ? getFadeInProgress() : 1;
+            
+            for (let i = 0; i < CONFIG.GRAINS; i++) {
+                const drawX = this.x + (rx - this.x) * Math.sin(this.sandP + Math.sin(i * w));
+                const drawY = this.y + (ry - this.y) * Math.sin(this.sandP + Math.sin(i * w));
+                const baseAlpha = 0.1 - i / (CONFIG.GRAINS * 10);
+                const alpha = baseAlpha * fadeMultiplier;
+                
+                ctx.fillStyle = `rgba(${this.sandColor[0]},${this.sandColor[1]},${this.sandColor[2]},${alpha})`;
+                ctx.beginPath();
+                ctx.arc(drawX, drawY, 0.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        move() {
+            if (!this.alive) return;
+            
+            this.lastX = this.x;
+            this.lastY = this.y;
+            
+            if (!this.curved) {
+                this.x += CONFIG.STEP * Math.cos(this.t * Math.PI / 180);
+                this.y += CONFIG.STEP * Math.sin(this.t * Math.PI / 180);
+            } else {
+                this.x += this.ys * Math.cos(this.t * Math.PI / 180) + this.xs * Math.cos(this.t * Math.PI / 180 - Math.PI / 2);
+                this.y += this.ys * Math.sin(this.t * Math.PI / 180) + this.xs * Math.sin(this.t * Math.PI / 180 - Math.PI / 2);
+                this.t += this.tInc;
+                this.degreesDrawn += Math.abs(this.tInc);
+            }
+            
+            const cx = Math.floor(this.x + Math.random() * 0.33 - 0.165);
+            const cy = Math.floor(this.y + Math.random() * 0.33 - 0.165);
+            
+            if (cx >= 0 && cx < canvasWidth && cy >= 0 && cy < canvasHeight) {
+                this.regionColor();
+                
+                // Only apply fade-in multiplier, not fade-out
+                const fadeMultiplier = fadingIn ? getFadeInProgress() : 1;
+                
+                // Draw smooth line instead of single pixel
+                ctx.strokeStyle = `rgba(${FG_COLOR[0]},${FG_COLOR[1]},${FG_COLOR[2]},${fadeMultiplier})`;
+                ctx.lineWidth = CONFIG.LINE_WIDTH;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.beginPath();
+                ctx.moveTo(this.lastX, this.lastY);
+                ctx.lineTo(this.x, this.y);
+                ctx.stroke();
+                
+                if (this.curved && this.degreesDrawn > 360) {
+                    this.alive = false;
+                    if (!fadingOut) {
+                        makeCrack(); makeCrack();
+                    }
+                } else if (getCGrid(cx, cy) > 10000 || Math.abs(getCGrid(cx, cy) - this.t) < 5) {
+                    setCGrid(cx, cy, this.t);
+                } else if (Math.abs(getCGrid(cx, cy)) > 2) {
+                    this.alive = false;
+                    if (!fadingOut) {
+                        makeCrack(); makeCrack();
+                    }
+                }
+            } else {
+                this.alive = false;
+                if (!fadingOut) {
+                    makeCrack(); makeCrack();
+                }
+            }
+        }
+    }
+
+    function makeCrack() {
+        if (cracks.length < CONFIG.MAX_CRACKS) cracks.push(new Crack());
+    }
+
+    // Initial setup
+    ctx.fillStyle = `rgb(${BG_COLOR[0]},${BG_COLOR[1]},${BG_COLOR[2]})`;
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    reset();
+
+    function animate() {
+        // Apply fade overlay BEFORE drawing (fades old content)
+        if (fadingOut) {
+            applyFadeOverlay();
+        }
+        
+        // Continue drawing cracks only if NOT fading out
+        if (!fadingOut) {
+            cracks.forEach(c => c.move());
+            
+            for (let i = cracks.length - 1; i >= 0; i--) {
+                if (!cracks[i].alive) cracks.splice(i, 1);
+            }
+        }
+        
+        // Check if fade-in is complete
+        if (fadingIn && getFadeInProgress() >= 1) {
+            fadingIn = false;
+        }
+        
+        // Check if reset needed
+        if (!fadingOut && !fadingIn && (cracks.length === 0 || (CONFIG.RESET_AFTER_SECONDS > 0 && (Date.now() - startTime) / 1000 > CONFIG.RESET_AFTER_SECONDS))) {
+            if (CONFIG.FADE_OUT_SECONDS > 0) {
+                startFadeOut();
+            } else {
+                ctx.fillStyle = `rgb(${BG_COLOR[0]},${BG_COLOR[1]},${BG_COLOR[2]})`;
+                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+                reset();
+            }
+        }
+        
+        requestAnimationFrame(animate);
+    }
+    animate();
+};
+</script>
+</body>
+</html>
