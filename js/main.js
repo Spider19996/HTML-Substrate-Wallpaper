@@ -4,6 +4,26 @@ window.onload = function() {
     const glowCanvas = document.getElementById('glowCanvas');
     const glowCtx = glowCanvas.getContext('2d', { alpha: true });
     
+    // Validate and sanitize CONFIG or use defaults
+    let validatedConfig;
+    try {
+        if (typeof CONFIG === 'undefined') {
+            console.warn('CONFIG not found, using defaults');
+            validatedConfig = ConfigValidator.validate({});
+        } else {
+            validatedConfig = ConfigValidator.validate(CONFIG);
+            if (validatedConfig.errors.length > 0) {
+                console.warn('Config validation warnings:', validatedConfig.errors);
+            }
+        }
+        // Replace global CONFIG with validated version
+        window.CONFIG = validatedConfig.config;
+    } catch (error) {
+        console.error('Config validation failed:', error);
+        console.warn('Using default configuration');
+        window.CONFIG = ConfigValidator.defaults;
+    }
+    
     let canvasWidth = window.innerWidth;
     let canvasHeight = window.innerHeight;
     canvas.width = canvasWidth; canvas.height = canvasHeight;
@@ -21,6 +41,7 @@ window.onload = function() {
     let fps = 60, frameCount = 0, fpsUpdateTime = Date.now();
     let mouseX = -100, mouseY = -100, mouseInCanvas = false;
     let lastFrameTime = Date.now();
+    let resizeTimeout = null;
 
     function makeCrack(x = null, y = null) {
         if (cracks.length < CONFIG.MAX_CRACKS) {
@@ -41,6 +62,40 @@ window.onload = function() {
         const clampedCracks = Math.max(CONFIG.MIN_INITIAL_CRACKS, Math.min(CONFIG.MAX_INITIAL_CRACKS, initialCracks));
         for (let i = 0; i < clampedCracks; i++) makeCrack();
     }
+
+    function handleResize() {
+        const newWidth = window.innerWidth;
+        const newHeight = window.innerHeight;
+        
+        // Only resize if dimensions actually changed
+        if (newWidth === canvasWidth && newHeight === canvasHeight) return;
+        
+        canvasWidth = newWidth;
+        canvasHeight = newHeight;
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+        glowCanvas.width = canvasWidth;
+        glowCanvas.height = canvasHeight;
+        
+        // Restore rendering quality after resize
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        glowCtx.imageSmoothingEnabled = true;
+        glowCtx.imageSmoothingQuality = 'high';
+        
+        // Clear and reset
+        ctx.fillStyle = `rgb(${CONFIG.BG_COLOR[0]},${CONFIG.BG_COLOR[1]},${CONFIG.BG_COLOR[2]})`;
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        glowCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+        
+        reset();
+    }
+
+    // Debounced resize handler to avoid excessive resets
+    window.addEventListener('resize', function() {
+        if (resizeTimeout) clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(handleResize, 250);
+    });
 
     function getFadeProgress() {
         if (!fadingOut) return 0;
