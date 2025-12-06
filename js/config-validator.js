@@ -64,9 +64,13 @@ const ConfigValidator = {
 
             switch(key) {
                 case 'STEP':
-                    validated[key] = isPositive(value) && value <= 10 ? value : defaultValue;
-                    if (validated[key] === defaultValue && value !== undefined) {
-                        errors.push(`${key}: must be 0-10, using default ${defaultValue}`);
+                    if (isPositive(value) && value <= 10) {
+                        validated[key] = value;
+                    } else {
+                        validated[key] = defaultValue;
+                        if (value !== undefined) {
+                            errors.push(`${key}: must be 0-10, using default ${defaultValue}`);
+                        }
                     }
                     break;
 
@@ -74,37 +78,57 @@ const ConfigValidator = {
                 case 'MIN_INITIAL_CRACKS':
                 case 'MAX_INITIAL_CRACKS':
                 case 'MAX_CRACKS':
-                    validated[key] = isPositive(value) && value <= 500 ? value : defaultValue;
-                    if (validated[key] === defaultValue && value !== undefined) {
-                        errors.push(`${key}: must be 0-500, using default ${defaultValue}`);
+                    if (isPositive(value) && value <= 500) {
+                        validated[key] = value;
+                    } else {
+                        validated[key] = defaultValue;
+                        if (value !== undefined) {
+                            errors.push(`${key}: must be 0-500, using default ${defaultValue}`);
+                        }
                     }
                     break;
 
                 case 'CIRCLE_PERCENT':
-                    validated[key] = isInRange(value, 0, 100) ? value : defaultValue;
-                    if (validated[key] === defaultValue && value !== undefined) {
-                        errors.push(`${key}: must be 0-100, using default ${defaultValue}`);
+                    if (isInRange(value, 0, 100)) {
+                        validated[key] = value;
+                    } else {
+                        validated[key] = defaultValue;
+                        if (value !== undefined) {
+                            errors.push(`${key}: must be 0-100, using default ${defaultValue}`);
+                        }
                     }
                     break;
 
                 case 'GRAINS':
-                    validated[key] = isPositive(value) && value <= 256 ? value : defaultValue;
-                    if (validated[key] === defaultValue && value !== undefined) {
-                        errors.push(`${key}: must be 0-256, using default ${defaultValue}`);
+                    if (isPositive(value) && value <= 256) {
+                        validated[key] = value;
+                    } else {
+                        validated[key] = defaultValue;
+                        if (value !== undefined) {
+                            errors.push(`${key}: must be 0-256, using default ${defaultValue}`);
+                        }
                     }
                     break;
 
                 case 'SAND_MODE':
-                    validated[key] = ['both', 'one', 'none'].includes(value) ? value : defaultValue;
-                    if (validated[key] === defaultValue && value !== undefined) {
-                        errors.push(`${key}: must be 'both', 'one', or 'none', using default '${defaultValue}'`);
+                    if (['both', 'one', 'none'].includes(value)) {
+                        validated[key] = value;
+                    } else {
+                        validated[key] = defaultValue;
+                        if (value !== undefined) {
+                            errors.push(`${key}: must be 'both', 'one', or 'none', using default '${defaultValue}'`);
+                        }
                     }
                     break;
 
                 case 'LINE_WIDTH':
-                    validated[key] = isPositive(value) && value <= 20 ? value : defaultValue;
-                    if (validated[key] === defaultValue && value !== undefined) {
-                        errors.push(`${key}: must be 0-20, using default ${defaultValue}`);
+                    if (isPositive(value) && value <= 20) {
+                        validated[key] = value;
+                    } else {
+                        validated[key] = defaultValue;
+                        if (value !== undefined) {
+                            errors.push(`${key}: must be 0-20, using default ${defaultValue}`);
+                        }
                     }
                     break;
 
@@ -113,16 +137,24 @@ const ConfigValidator = {
                 case 'HARD_RESET_EVERY':
                 case 'HARD_FADE_SECONDS':
                 case 'HARD_FADE_IN_SECONDS':
-                    validated[key] = isPositive(value) ? value : defaultValue;
-                    if (validated[key] === defaultValue && value !== undefined) {
-                        errors.push(`${key}: must be >= 0, using default ${defaultValue}`);
+                    if (isPositive(value)) {
+                        validated[key] = value;
+                    } else {
+                        validated[key] = defaultValue;
+                        if (value !== undefined) {
+                            errors.push(`${key}: must be >= 0, using default ${defaultValue}`);
+                        }
                     }
                     break;
 
                 case 'BRANCH_MODE':
-                    validated[key] = ['perpendicular', 'opposite', 'any'].includes(value) ? value : defaultValue;
-                    if (validated[key] === defaultValue && value !== undefined) {
-                        errors.push(`${key}: must be 'perpendicular', 'opposite', or 'any', using default '${defaultValue}'`);
+                    if (['perpendicular', 'opposite', 'any'].includes(value)) {
+                        validated[key] = value;
+                    } else {
+                        validated[key] = defaultValue;
+                        if (value !== undefined) {
+                            errors.push(`${key}: must be 'perpendicular', 'opposite', or 'any', using default '${defaultValue}'`);
+                        }
                     }
                     break;
 
@@ -131,32 +163,48 @@ const ConfigValidator = {
                 case 'CLICK_SPAWN_ENABLED':
                 case 'CURSOR_SPARKS_ENABLED':
                 case 'FPS_COUNTER_ENABLED':
-                    validated[key] = typeof value === 'boolean' ? value : defaultValue;
-                    if (validated[key] === defaultValue && value !== undefined) {
-                        errors.push(`${key}: must be boolean, using default ${defaultValue}`);
+                    if (typeof value === 'boolean') {
+                        validated[key] = value;
+                    } else {
+                        validated[key] = defaultValue;
+                        if (value !== undefined) {
+                            errors.push(`${key}: must be boolean, using default ${defaultValue}`);
+                        }
                     }
                     break;
 
                 case 'LINE_DRIFT_AMOUNT':
-                    validated[key] = isInRange(value, 0, 45) ? value : defaultValue;
-                    if (validated[key] === defaultValue && value !== undefined) {
-                        errors.push(`${key}: must be 0-45, using default ${defaultValue}`);
+                    if (isInRange(value, 0, 45)) {
+                        validated[key] = value;
+                    } else {
+                        validated[key] = defaultValue;
+                        if (value !== undefined) {
+                            errors.push(`${key}: must be 0-45, using default ${defaultValue}`);
+                        }
                     }
                     break;
 
                 case 'LINE_DRIFT_FREQUENCY':
-                    validated[key] = isInRange(value, 0, 1) ? value : defaultValue;
-                    if (validated[key] === defaultValue && value !== undefined) {
-                        errors.push(`${key}: must be 0-1, using default ${defaultValue}`);
+                    if (isInRange(value, 0, 1)) {
+                        validated[key] = value;
+                    } else {
+                        validated[key] = defaultValue;
+                        if (value !== undefined) {
+                            errors.push(`${key}: must be 0-1, using default ${defaultValue}`);
+                        }
                     }
                     break;
 
                 case 'SPARK_SPAWN_RATE':
                 case 'SPARK_LIFETIME':
                 case 'CURSOR_SPARK_RATE':
-                    validated[key] = isPositive(value) && value <= 100 ? value : defaultValue;
-                    if (validated[key] === defaultValue && value !== undefined) {
-                        errors.push(`${key}: must be 0-100, using default ${defaultValue}`);
+                    if (isPositive(value) && value <= 100) {
+                        validated[key] = value;
+                    } else {
+                        validated[key] = defaultValue;
+                        if (value !== undefined) {
+                            errors.push(`${key}: must be 0-100, using default ${defaultValue}`);
+                        }
                     }
                     break;
 
@@ -164,39 +212,59 @@ const ConfigValidator = {
                 case 'SPARK_SPEED_MAX':
                 case 'SPARK_SIZE':
                 case 'SPARK_GLOW':
-                    validated[key] = isPositive(value) && value <= 50 ? value : defaultValue;
-                    if (validated[key] === defaultValue && value !== undefined) {
-                        errors.push(`${key}: must be 0-50, using default ${defaultValue}`);
+                    if (isPositive(value) && value <= 50) {
+                        validated[key] = value;
+                    } else {
+                        validated[key] = defaultValue;
+                        if (value !== undefined) {
+                            errors.push(`${key}: must be 0-50, using default ${defaultValue}`);
+                        }
                     }
                     break;
 
                 case 'FPS_COUNTER_POSITION':
-                    validated[key] = ['top-left', 'top-right'].includes(value) ? value : defaultValue;
-                    if (validated[key] === defaultValue && value !== undefined) {
-                        errors.push(`${key}: must be 'top-left' or 'top-right', using default '${defaultValue}'`);
+                    if (['top-left', 'top-right'].includes(value)) {
+                        validated[key] = value;
+                    } else {
+                        validated[key] = defaultValue;
+                        if (value !== undefined) {
+                            errors.push(`${key}: must be 'top-left' or 'top-right', using default '${defaultValue}'`);
+                        }
                     }
                     break;
 
                 case 'FPS_COUNTER_SIZE':
-                    validated[key] = isPositive(value) && value <= 100 ? value : defaultValue;
-                    if (validated[key] === defaultValue && value !== undefined) {
-                        errors.push(`${key}: must be 0-100, using default ${defaultValue}`);
+                    if (isPositive(value) && value <= 100) {
+                        validated[key] = value;
+                    } else {
+                        validated[key] = defaultValue;
+                        if (value !== undefined) {
+                            errors.push(`${key}: must be 0-100, using default ${defaultValue}`);
+                        }
                     }
                     break;
 
                 case 'TARGET_FPS':
-                    validated[key] = isPositive(value) && value <= 240 ? value : defaultValue;
-                    if (validated[key] === defaultValue && value !== undefined) {
-                        errors.push(`${key}: must be 0-240, using default ${defaultValue}`);
+                    if (isPositive(value) && value <= 240) {
+                        validated[key] = value;
+                    } else {
+                        validated[key] = defaultValue;
+                        if (value !== undefined) {
+                            errors.push(`${key}: must be 0-240, using default ${defaultValue}`);
+                        }
                     }
                     break;
 
                 case 'FG_COLOR':
                 case 'BG_COLOR':
                 case 'FPS_COUNTER_COLOR':
-                    validated[key] = isColor(value) ? value : defaultValue;
-                    if (validated[key] === defaultValue && value !== undefined) {
-                        errors.push(`${key}: must be [R, G, B] with values 0-255, using default`);
+                    if (isColor(value)) {
+                        validated[key] = value;
+                    } else {
+                        validated[key] = defaultValue;
+                        if (value !== undefined) {
+                            errors.push(`${key}: must be [R, G, B] with values 0-255, using default`);
+                        }
                     }
                     break;
 
