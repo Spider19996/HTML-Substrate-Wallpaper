@@ -122,16 +122,24 @@ window.onload = function() {
         if (fadingOut) applyFadeOverlay();
         
         if (!fadingOut) {
-            cracks.forEach(c => c.move(ctx, sparks, fadingIn, fadingOut, makeCrack));
+            // Remove dead cracks while processing
             for (let i = cracks.length - 1; i >= 0; i--) {
+                cracks[i].move(ctx, sparks, fadingIn, fadingOut, makeCrack);
                 if (!cracks[i].alive) cracks.splice(i, 1);
             }
         }
         
         spawnCursorSparks();
-        sparks.forEach(s => s.update());
-        sparks.forEach(s => s.draw(glowCtx, fadingIn));
-        sparks = sparks.filter(s => !s.isDead());
+        
+        // Combined spark update, draw and cleanup in one loop
+        for (let i = sparks.length - 1; i >= 0; i--) {
+            sparks[i].update();
+            if (sparks[i].isDead()) {
+                sparks.splice(i, 1);
+            } else {
+                sparks[i].draw(glowCtx, fadingIn);
+            }
+        }
         
         if (fadingIn && getFadeInProgress() >= 1) fadingIn = false;
         
