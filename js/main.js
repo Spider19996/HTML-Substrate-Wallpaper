@@ -29,6 +29,10 @@ window.onload = function() {
     }
 
     function reset() {
+        // Release all sparks back to pool
+        for (let i = 0; i < sparks.length; i++) {
+            SparkPool.release(sparks[i]);
+        }
         cracks = []; sparks = []; 
         cgrid = new Array(canvasWidth * canvasHeight).fill(10001);
         startTime = Date.now(); fadingOut = false; hardFading = false;
@@ -94,9 +98,37 @@ window.onload = function() {
     function spawnCursorSparks() {
         if (!CONFIG.CURSOR_SPARKS_ENABLED || !mouseInCanvas) return;
         for (let i = 0; i < CONFIG.CURSOR_SPARK_RATE; i++) {
-            sparks.push(new Spark(mouseX, mouseY, CONFIG.FG_COLOR));
+            sparks.push(SparkPool.get(mouseX, mouseY, CONFIG.FG_COLOR));
         }
     }
+
+    // Use requestIdleCallback for non-critical FPS counter updates
+    function updateFPSCounter() {
+        if (!CONFIG.FPS_COUNTER_ENABLED) return;
+        
+        const updateFPS = () => {
+            const currentTime = Date.now();
+            if (currentTime - fpsUpdateTime >= 1000) {
+                fps = Math.round(frameCount * 1000 / (currentTime - fpsUpdateTime));
+                frameCount = 0;
+                fpsUpdateTime = currentTime;
+            }
+            
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(updateFPS, { timeout: 1000 });
+            } else {
+                setTimeout(updateFPS, 1000);
+            }
+        };
+        
+        if ('requestIdleCallback' in window) {
+            requestIdleCallback(updateFPS);
+        } else {
+            setTimeout(updateFPS, 1000);
+        }
+    }
+    
+    updateFPSCounter();
 
     function animate() {
         // FPS limiting
@@ -112,10 +144,6 @@ window.onload = function() {
         }
         
         frameCount++;
-        if (currentTime - fpsUpdateTime >= 1000) {
-            fps = Math.round(frameCount * 1000 / (currentTime - fpsUpdateTime));
-            frameCount = 0; fpsUpdateTime = currentTime;
-        }
         
         glowCtx.clearRect(0, 0, canvasWidth, canvasHeight);
         
@@ -131,10 +159,11 @@ window.onload = function() {
         
         spawnCursorSparks();
         
-        // Combined spark update, draw and cleanup in one loop
+        // Combined spark update, draw and cleanup in one loop with object pooling
         for (let i = sparks.length - 1; i >= 0; i--) {
             sparks[i].update();
             if (sparks[i].isDead()) {
+                SparkPool.release(sparks[i]);
                 sparks.splice(i, 1);
             } else {
                 sparks[i].draw(glowCtx, fadingIn);
@@ -153,7 +182,7 @@ window.onload = function() {
             }
         }
         
-        // FPS Counter
+        // FPS Counter (only drawing, update happens in idle callback)
         if (CONFIG.FPS_COUNTER_ENABLED) {
             const padding = 10;
             let x = padding, y = padding + CONFIG.FPS_COUNTER_SIZE;
