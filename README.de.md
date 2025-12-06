@@ -1,6 +1,6 @@
-# Substrate Visualizer
+# Substrate HTML Wallpaper
 
-*[English version](README.md)*
+*[🇬🇧 Read English version](README.md)*
 
 Eine interaktive generative Kunst-Visualisierung, optimiert für **KDE Plasma HTML-Hintergrundbilder**. Beobachte organische Rissmuster, die über deinen Desktop wachsen und sich verzweigen, mit Partikeleffekten und fließenden Animationen.
 
