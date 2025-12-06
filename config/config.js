@@ -41,11 +41,12 @@ const CONFIG = {
     CURSOR_SPARKS_ENABLED:   false,  // Disabled for HTML Wallpaper compatibility
     CURSOR_SPARK_RATE:       2,
     
-    // FPS Counter
+    // FPS Settings
     FPS_COUNTER_ENABLED:     false,
     FPS_COUNTER_POSITION:    'top-left',
     FPS_COUNTER_SIZE:        14,
     FPS_COUNTER_COLOR:       [0, 0, 0],
+    TARGET_FPS:              60,     // FPS limit (0 = unlimited)
     
     // Colors
     FG_COLOR:                [0, 0, 0],
