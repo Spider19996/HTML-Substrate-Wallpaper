@@ -6,14 +6,17 @@ window.onload = function() {
     
     // Validate and sanitize CONFIG or use defaults
     let validatedConfig;
+    let configErrors = [];
     try {
         if (typeof CONFIG === 'undefined') {
             console.warn('CONFIG not found, using defaults');
+            configErrors.push('CONFIG not found, using default settings');
             validatedConfig = ConfigValidator.validate({});
         } else {
             validatedConfig = ConfigValidator.validate(CONFIG);
             if (validatedConfig.errors.length > 0) {
                 console.warn('Config validation warnings:', validatedConfig.errors);
+                configErrors = validatedConfig.errors;
             }
         }
         // Replace global CONFIG with validated version
@@ -21,7 +24,14 @@ window.onload = function() {
     } catch (error) {
         console.error('Config validation failed:', error);
         console.warn('Using default configuration');
+        configErrors.push('Config validation failed: ' + error.message);
+        configErrors.push('Using default configuration');
         window.CONFIG = ConfigValidator.defaults;
+    }
+    
+    // Display config errors to user if any
+    if (configErrors.length > 0) {
+        showConfigWarning(configErrors);
     }
     
     let canvasWidth = window.innerWidth;
@@ -42,6 +52,64 @@ window.onload = function() {
     let mouseX = -100, mouseY = -100, mouseInCanvas = false;
     let lastFrameTime = Date.now();
     let resizeTimeout = null;
+
+    function showConfigWarning(errors) {
+        const warningDiv = document.createElement('div');
+        warningDiv.id = 'config-warning';
+        warningDiv.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 50, 50, 0.95);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 14px;
+            max-width: 600px;
+            max-height: 400px;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            line-height: 1.5;
+        `;
+        
+        let html = '<strong style="font-size: 16px;">⚠️ Configuration Warning</strong><br><br>';
+        html += '<div style="text-align: left;">';
+        errors.forEach(error => {
+            html += '• ' + error + '<br>';
+        });
+        html += '</div><br>';
+        html += '<div style="text-align: center; margin-top: 10px;">';
+        html += '<button id="dismiss-warning" style="';
+        html += 'background: white; color: #ff3232; border: none; padding: 8px 20px; ';
+        html += 'border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px;';
+        html += '">Dismiss (5s)</button>';
+        html += '</div>';
+        
+        warningDiv.innerHTML = html;
+        document.body.appendChild(warningDiv);
+        
+        // Auto-dismiss after 5 seconds
+        let countdown = 5;
+        const dismissBtn = document.getElementById('dismiss-warning');
+        const interval = setInterval(() => {
+            countdown--;
+            if (countdown > 0) {
+                dismissBtn.textContent = `Dismiss (${countdown}s)`;
+            } else {
+                clearInterval(interval);
+                warningDiv.remove();
+            }
+        }, 1000);
+        
+        // Manual dismiss
+        dismissBtn.addEventListener('click', () => {
+            clearInterval(interval);
+            warningDiv.remove();
+        });
+    }
 
     function makeCrack(x = null, y = null) {
         if (cracks.length < CONFIG.MAX_CRACKS) {
