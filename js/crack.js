@@ -104,7 +104,7 @@ Crack.prototype.regionColor = function(ctx) {
 Crack.prototype.spawnSparks = function(sparks) {
     if (!CONFIG.SPARKLER_ENABLED) return;
     for (let i = 0; i < CONFIG.SPARK_SPAWN_RATE; i++) {
-        sparks.push(new Spark(this.x, this.y, this.sandColor));
+        sparks.push(SparkPool.get(this.x, this.y, this.sandColor));
     }
 };
 
