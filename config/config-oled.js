@@ -46,6 +46,7 @@ const CONFIG = {
     FPS_COUNTER_POSITION:    'top-left',
     FPS_COUNTER_SIZE:        14,
     FPS_COUNTER_COLOR:       [255, 255, 255],
+    TARGET_FPS:              30,     // FPS limit (0 = unlimited)
     
     // Colors
     FG_COLOR:                [255, 255, 255],
