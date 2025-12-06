@@ -6,6 +6,7 @@
 <style>
 body { margin: 0; padding: 0; overflow: hidden; background: #fff; }
 #canvas, #glowCanvas { display: block; position: absolute; top: 0; left: 0; }
+#glowCanvas { pointer-events: none; }
 </style>
 </head>
 <body>
@@ -16,8 +17,8 @@ body { margin: 0; padding: 0; overflow: hidden; background: #fff; }
 const CONFIG = {
     STEP: 0.7,                     // Line speed (Original: 0.42)
     INITIAL_CRACKS: 3,             // Number of starting lines (Original: 3)
-    MAX_CRACKS: 50,               // Maximum concurrent lines (Original: no limit)
-    CIRCLE_PERCENT: 70,            // Probability for curves in % (Original: 10)
+    MAX_CRACKS: 100,               // Maximum concurrent lines (Original: no limit)
+    CIRCLE_PERCENT: 40,            // Probability for curves in % (Original: 10)
     GRAINS: 64,                    // Number of sand particles (Original: 64)
     RESET_AFTER_SECONDS: 60,      // Auto-reset after X seconds (Original: no reset, 0 = disabled)
     FADE_OUT_SECONDS: 3,           // Fade out duration before reset (0 = hard reset)
@@ -35,6 +36,9 @@ const CONFIG = {
     SPARK_LIFETIME: 15,            // Frames until spark disappears
     SPARK_SIZE: 1.3,               // Spark particle size (sehr klein für Sandkorn-Effekt)
     SPARK_GLOW: 2.0,               // Minimaler Glow radius
+    
+    // Mouse interaction
+    CLICK_SPAWN_ENABLED: true,     // Enable spawning cracks on click
     
     // Normal colors (current: vibrant)
     FG_COLOR: [0, 0, 0],          // Line color RGB
@@ -256,6 +260,25 @@ window.onload = function() {
     });
 
 
+    // Mouse/Touch interaction
+    function handleClick(e) {
+        if (!CONFIG.CLICK_SPAWN_ENABLED) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        makeCrack(x, y);
+    }
+    
+    canvas.addEventListener('click', handleClick);
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        handleClick(touch);
+    });
+
+
     // Spark particle class
     class Spark {
         constructor(x, y, color) {
@@ -310,10 +333,11 @@ window.onload = function() {
 
 
     class Crack {
-        constructor() {
+        constructor(startX = null, startY = null) {
             this.id = nextCrackId++;
-            this.x = Math.random() * canvasWidth;
-            this.y = Math.random() * canvasHeight;
+            this.manualStart = (startX !== null && startY !== null);
+            this.x = startX !== null ? startX : Math.random() * canvasWidth;
+            this.y = startY !== null ? startY : Math.random() * canvasHeight;
             this.t = Math.random() * 360;
             this.curved = false;
             this.degreesDrawn = 0;
@@ -327,19 +351,32 @@ window.onload = function() {
         }
         
         startCrack() {
-            let found = false, timeout = 0, px = 0, py = 0;
-            while (!found && timeout < 1000) {
-                timeout++;
-                px = Math.floor(Math.random() * canvasWidth);
-                py = Math.floor(Math.random() * canvasHeight);
-                if (getCGrid(px, py) < 10000) found = true;
+            let px = Math.floor(this.x);
+            let py = Math.floor(this.y);
+            
+            // Only search for existing crack if not manually placed
+            if (!this.manualStart) {
+                let found = false, timeout = 0;
+                while (!found && timeout < 1000) {
+                    timeout++;
+                    px = Math.floor(Math.random() * canvasWidth);
+                    py = Math.floor(Math.random() * canvasHeight);
+                    if (getCGrid(px, py) < 10000) found = true;
+                }
+                if (!found) {
+                    px = Math.floor(this.x);
+                    py = Math.floor(this.y);
+                }
             }
-            if (!found) {
-                px = Math.floor(this.x);
-                py = Math.floor(this.y);
-            }
+            
             const oldA = getCGrid(px, py);
             let a = oldA + (Math.random() > 0.5 ? 90 : -90) + (Math.random() * 4 - 2);
+            
+            // If manually placed and no existing crack found, use random angle
+            if (this.manualStart && oldA > 10000) {
+                a = Math.random() * 360;
+            }
+            
             if (Math.random() * 100 < CONFIG.CIRCLE_PERCENT) {
                 this.curved = true;
                 this.degreesDrawn = 0;
@@ -350,11 +387,18 @@ window.onload = function() {
                 this.ys = r * Math.sin(radInc);
                 this.xs = r * (1 - Math.cos(radInc));
             }
-            this.x = px + 0.61 * Math.cos(a * Math.PI / 180);
-            this.y = py + 0.61 * Math.sin(a * Math.PI / 180);
+            
+            // For manual placement, start exactly at click position
+            if (this.manualStart) {
+                this.t = a;
+            } else {
+                this.x = px + 0.61 * Math.cos(a * Math.PI / 180);
+                this.y = py + 0.61 * Math.sin(a * Math.PI / 180);
+                this.t = a;
+            }
+            
             this.lastX = this.x;
             this.lastY = this.y;
-            this.t = a;
         }
         
         regionColor() {
@@ -456,8 +500,8 @@ window.onload = function() {
     }
 
 
-    function makeCrack() {
-        if (cracks.length < CONFIG.MAX_CRACKS) cracks.push(new Crack());
+    function makeCrack(x = null, y = null) {
+        if (cracks.length < CONFIG.MAX_CRACKS) cracks.push(new Crack(x, y));
     }
 
 
