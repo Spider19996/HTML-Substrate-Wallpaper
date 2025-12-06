@@ -56,6 +56,11 @@ const ConfigValidator = {
         const isInRange = (val, min, max) => isNumber(val) && val >= min && val <= max;
         const isColor = (val) => Array.isArray(val) && val.length === 3 && 
             val.every(c => isNumber(c) && c >= 0 && c <= 255);
+        const formatValue = (val) => {
+            if (Array.isArray(val)) return JSON.stringify(val);
+            if (typeof val === 'string') return `'${val}'`;
+            return val;
+        };
 
         // Validate each config option
         for (const key in this.defaults) {
@@ -69,7 +74,7 @@ const ConfigValidator = {
                     } else {
                         validated[key] = defaultValue;
                         if (value !== undefined) {
-                            errors.push(`${key}: must be 0-10, using default ${defaultValue}`);
+                            errors.push(`${key}: invalid value ${formatValue(value)} (must be 0-10), using default ${defaultValue}`);
                         }
                     }
                     break;
@@ -83,7 +88,7 @@ const ConfigValidator = {
                     } else {
                         validated[key] = defaultValue;
                         if (value !== undefined) {
-                            errors.push(`${key}: must be 0-500, using default ${defaultValue}`);
+                            errors.push(`${key}: invalid value ${formatValue(value)} (must be 0-500), using default ${defaultValue}`);
                         }
                     }
                     break;
@@ -94,7 +99,7 @@ const ConfigValidator = {
                     } else {
                         validated[key] = defaultValue;
                         if (value !== undefined) {
-                            errors.push(`${key}: must be 0-100, using default ${defaultValue}`);
+                            errors.push(`${key}: invalid value ${formatValue(value)} (must be 0-100), using default ${defaultValue}`);
                         }
                     }
                     break;
@@ -105,7 +110,7 @@ const ConfigValidator = {
                     } else {
                         validated[key] = defaultValue;
                         if (value !== undefined) {
-                            errors.push(`${key}: must be 0-256, using default ${defaultValue}`);
+                            errors.push(`${key}: invalid value ${formatValue(value)} (must be 0-256), using default ${defaultValue}`);
                         }
                     }
                     break;
@@ -116,7 +121,7 @@ const ConfigValidator = {
                     } else {
                         validated[key] = defaultValue;
                         if (value !== undefined) {
-                            errors.push(`${key}: must be 'both', 'one', or 'none', using default '${defaultValue}'`);
+                            errors.push(`${key}: invalid value ${formatValue(value)} (must be 'both', 'one', or 'none'), using default '${defaultValue}'`);
                         }
                     }
                     break;
@@ -127,7 +132,7 @@ const ConfigValidator = {
                     } else {
                         validated[key] = defaultValue;
                         if (value !== undefined) {
-                            errors.push(`${key}: must be 0-20, using default ${defaultValue}`);
+                            errors.push(`${key}: invalid value ${formatValue(value)} (must be 0-20), using default ${defaultValue}`);
                         }
                     }
                     break;
@@ -142,7 +147,7 @@ const ConfigValidator = {
                     } else {
                         validated[key] = defaultValue;
                         if (value !== undefined) {
-                            errors.push(`${key}: must be >= 0, using default ${defaultValue}`);
+                            errors.push(`${key}: invalid value ${formatValue(value)} (must be >= 0), using default ${defaultValue}`);
                         }
                     }
                     break;
@@ -153,7 +158,7 @@ const ConfigValidator = {
                     } else {
                         validated[key] = defaultValue;
                         if (value !== undefined) {
-                            errors.push(`${key}: must be 'perpendicular', 'opposite', or 'any', using default '${defaultValue}'`);
+                            errors.push(`${key}: invalid value ${formatValue(value)} (must be 'perpendicular', 'opposite', or 'any'), using default '${defaultValue}'`);
                         }
                     }
                     break;
@@ -168,7 +173,7 @@ const ConfigValidator = {
                     } else {
                         validated[key] = defaultValue;
                         if (value !== undefined) {
-                            errors.push(`${key}: must be boolean, using default ${defaultValue}`);
+                            errors.push(`${key}: invalid value ${formatValue(value)} (must be boolean), using default ${defaultValue}`);
                         }
                     }
                     break;
@@ -179,7 +184,7 @@ const ConfigValidator = {
                     } else {
                         validated[key] = defaultValue;
                         if (value !== undefined) {
-                            errors.push(`${key}: must be 0-45, using default ${defaultValue}`);
+                            errors.push(`${key}: invalid value ${formatValue(value)} (must be 0-45), using default ${defaultValue}`);
                         }
                     }
                     break;
@@ -190,7 +195,7 @@ const ConfigValidator = {
                     } else {
                         validated[key] = defaultValue;
                         if (value !== undefined) {
-                            errors.push(`${key}: must be 0-1, using default ${defaultValue}`);
+                            errors.push(`${key}: invalid value ${formatValue(value)} (must be 0-1), using default ${defaultValue}`);
                         }
                     }
                     break;
@@ -203,7 +208,7 @@ const ConfigValidator = {
                     } else {
                         validated[key] = defaultValue;
                         if (value !== undefined) {
-                            errors.push(`${key}: must be 0-100, using default ${defaultValue}`);
+                            errors.push(`${key}: invalid value ${formatValue(value)} (must be 0-100), using default ${defaultValue}`);
                         }
                     }
                     break;
@@ -217,7 +222,7 @@ const ConfigValidator = {
                     } else {
                         validated[key] = defaultValue;
                         if (value !== undefined) {
-                            errors.push(`${key}: must be 0-50, using default ${defaultValue}`);
+                            errors.push(`${key}: invalid value ${formatValue(value)} (must be 0-50), using default ${defaultValue}`);
                         }
                     }
                     break;
@@ -228,7 +233,7 @@ const ConfigValidator = {
                     } else {
                         validated[key] = defaultValue;
                         if (value !== undefined) {
-                            errors.push(`${key}: must be 'top-left' or 'top-right', using default '${defaultValue}'`);
+                            errors.push(`${key}: invalid value ${formatValue(value)} (must be 'top-left' or 'top-right'), using default '${defaultValue}'`);
                         }
                     }
                     break;
@@ -239,7 +244,7 @@ const ConfigValidator = {
                     } else {
                         validated[key] = defaultValue;
                         if (value !== undefined) {
-                            errors.push(`${key}: must be 0-100, using default ${defaultValue}`);
+                            errors.push(`${key}: invalid value ${formatValue(value)} (must be 0-100), using default ${defaultValue}`);
                         }
                     }
                     break;
@@ -250,7 +255,7 @@ const ConfigValidator = {
                     } else {
                         validated[key] = defaultValue;
                         if (value !== undefined) {
-                            errors.push(`${key}: must be 0-240, using default ${defaultValue}`);
+                            errors.push(`${key}: invalid value ${formatValue(value)} (must be 0-240), using default ${defaultValue}`);
                         }
                     }
                     break;
@@ -263,7 +268,7 @@ const ConfigValidator = {
                     } else {
                         validated[key] = defaultValue;
                         if (value !== undefined) {
-                            errors.push(`${key}: must be [R, G, B] with values 0-255, using default`);
+                            errors.push(`${key}: invalid value ${formatValue(value)} (must be [R, G, B] with values 0-255), using default`);
                         }
                     }
                     break;
@@ -274,7 +279,7 @@ const ConfigValidator = {
                     } else {
                         validated[key] = defaultValue;
                         if (value !== undefined) {
-                            errors.push(`${key}: must be array of [R, G, B] colors, using default`);
+                            errors.push(`${key}: invalid value ${formatValue(value)} (must be array of [R, G, B] colors), using default`);
                         }
                     }
                     break;
@@ -286,13 +291,13 @@ const ConfigValidator = {
 
         // Cross-validation
         if (validated.SPARK_SPEED_MIN > validated.SPARK_SPEED_MAX) {
-            errors.push('SPARK_SPEED_MIN must be <= SPARK_SPEED_MAX, swapping values');
+            errors.push(`SPARK_SPEED_MIN (${validated.SPARK_SPEED_MIN}) must be <= SPARK_SPEED_MAX (${validated.SPARK_SPEED_MAX}), swapping values`);
             [validated.SPARK_SPEED_MIN, validated.SPARK_SPEED_MAX] = 
                 [validated.SPARK_SPEED_MAX, validated.SPARK_SPEED_MIN];
         }
 
         if (validated.MIN_INITIAL_CRACKS > validated.MAX_INITIAL_CRACKS) {
-            errors.push('MIN_INITIAL_CRACKS must be <= MAX_INITIAL_CRACKS, swapping values');
+            errors.push(`MIN_INITIAL_CRACKS (${validated.MIN_INITIAL_CRACKS}) must be <= MAX_INITIAL_CRACKS (${validated.MAX_INITIAL_CRACKS}), swapping values`);
             [validated.MIN_INITIAL_CRACKS, validated.MAX_INITIAL_CRACKS] = 
                 [validated.MAX_INITIAL_CRACKS, validated.MIN_INITIAL_CRACKS];
         }
