@@ -13,76 +13,14 @@ body { margin: 0; padding: 0; overflow: hidden; background: #fff; }
 <CANVAS id="canvas"></CANVAS>
 <CANVAS id="glowCanvas"></CANVAS>
 <script>
-// ========== CONFIGURATION ==========
-const CONFIG = {
-    // Line behavior
-    STEP: 0.7,                     // Line speed in pixels per frame
-    INITIAL_CRACKS: 3,             // Number of starting lines
-    MAX_CRACKS: 100,               // Maximum concurrent lines
-    CIRCLE_PERCENT: 40,            // Probability for curved lines in %
-    
-    // Visual effects
-    GRAINS: 64,                    // Number of sand particles per line
-    SAND_MODE: 'both',           // 'both' (both sides), 'single' (one side), 'none' (disabled)
-    LINE_WIDTH: 1,                 // Width of crack lines
-    OLED_MODE: true,               // Black background with bright lines
-    
-    // Animation timing
-    RESET_AFTER_SECONDS: 60,       // Auto-reset timer (0 = disabled)
-    FADE_OUT_SECONDS: 3,           // Soft fade duration before reset
-    HARD_RESET_EVERY: 3,           // Hard reset after X soft resets (0 = never)
-    HARD_FADE_SECONDS: 2,          // Hard fade to black duration
-    HARD_FADE_IN_SECONDS: 2,       // Fade in after hard reset duration
-    
-    // Branching behavior
-    BRANCH_MODE: 'perpendicular',  // 'perpendicular' (±90°), 'opposite' (±90°/±180°), 'any' (0-360°)
-    
-    // Line drift (bending while drawing)
-    LINE_DRIFT_ENABLED: false,     // Lines change direction while drawing
-    LINE_DRIFT_AMOUNT: 2,          // Max angle change per frame in degrees
-    LINE_DRIFT_FREQUENCY: 0.3,     // Drift probability per frame (0-1)
-    
-    // Sparkler effect
-    SPARKLER_ENABLED: true,        // Particle effect at line tips
-    SPARK_SPAWN_RATE: 3,           // New sparks per frame
-    SPARK_SPEED_MIN: 0.5,          // Minimum spark velocity
-    SPARK_SPEED_MAX: 2.5,          // Maximum spark velocity
-    SPARK_LIFETIME: 15,            // Spark lifetime in frames
-    SPARK_SIZE: 1.3,               // Spark particle size in pixels
-    SPARK_GLOW: 2.0,               // Glow radius around sparks
-    
-    // Mouse interaction
-    CLICK_SPAWN_ENABLED: true,     // Spawn line on click
-    CURSOR_SPARKS_ENABLED: true,   // Show sparks at cursor position
-    CURSOR_SPARK_RATE: 2,          // Cursor sparks per frame
-    
-    // Normal mode colors
-    FG_COLOR: [0, 0, 0],
-    BG_COLOR: [255, 255, 255],
-    COLORS: [
-        [255, 50, 50],    // Bright red
-        [50, 255, 50],    // Bright green
-        [50, 50, 255],    // Bright blue
-        [255, 255, 0],    // Yellow
-        [255, 0, 255],    // Magenta
-        [0, 255, 255]     // Cyan
-    ],
-    
-    // OLED mode colors (auto-selected when OLED_MODE = true)
-    OLED_FG_COLOR: [255, 255, 255],
-    OLED_BG_COLOR: [0, 0, 0],
-    OLED_COLORS: [
-        [0, 255, 255],    // Cyan
-        [255, 0, 255],    // Magenta
-        [255, 255, 0],    // Yellow
-        [0, 255, 128],    // Green-Cyan
-        [255, 128, 0],    // Orange
-        [128, 0, 255]     // Purple
-    ]
-};
-// ===================================
-
-
+// Lade Config basierend auf URL-Parameter
+const urlParams = new URLSearchParams(window.location.search);
+const configFile = urlParams.get('config') || 'config.js';
+const script = document.createElement('script');
+script.src = configFile;
+document.head.appendChild(script);
+</script>
+<script>
 window.onload = function() {
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', { alpha: false });
@@ -103,9 +41,9 @@ window.onload = function() {
     glowCtx.imageSmoothingQuality = 'high';
 
     // Select color scheme
-    const FG_COLOR = CONFIG.OLED_MODE ? CONFIG.OLED_FG_COLOR : CONFIG.FG_COLOR;
-    const BG_COLOR = CONFIG.OLED_MODE ? CONFIG.OLED_BG_COLOR : CONFIG.BG_COLOR;
-    const COLORS = CONFIG.OLED_MODE ? CONFIG.OLED_COLORS : CONFIG.COLORS;
+    const FG_COLOR = CONFIG.FG_COLOR;
+    const BG_COLOR = CONFIG.BG_COLOR;
+    const COLORS = CONFIG.COLORS;
     
     document.body.style.background = `rgb(${BG_COLOR[0]},${BG_COLOR[1]},${BG_COLOR[2]})`;
 
@@ -155,18 +93,24 @@ window.onload = function() {
     }
 
 
-    function reset() {
-        cracks = [];
-        sparks = [];
-        cgrid = new Array(canvasWidth * canvasHeight).fill(10001);
-        nextCrackId = 0;
-        startTime = Date.now();
-        fadingOut = false;
-        fadeStartTime = 0;
-        hardFading = false;
-        
-        for (let i = 0; i < CONFIG.INITIAL_CRACKS; i++) makeCrack();
-    }
+function reset() {
+    cracks = [];
+    sparks = [];
+    cgrid = new Array(canvasWidth * canvasHeight).fill(10001);
+    nextCrackId = 0;
+    startTime = Date.now();
+    fadingOut = false;
+    fadeStartTime = 0;
+    hardFading = false;
+    
+    // Berechne initiale Crack-Anzahl basierend auf Canvas-Größe
+    const area = canvasWidth * canvasHeight;
+    const initialCracks = Math.floor(area / 100000 * CONFIG.CRACKS_PER_100K_PIXELS);
+    const clampedCracks = Math.max(CONFIG.MIN_INITIAL_CRACKS, Math.min(CONFIG.MAX_INITIAL_CRACKS, initialCracks));
+    
+    for (let i = 0; i < clampedCracks; i++) makeCrack();
+}
+
 
 
     function startFadeOut() {
