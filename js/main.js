@@ -20,6 +20,7 @@ window.onload = function() {
     let hardFading = false, fadingIn = false, fadeInStartTime = 0;
     let fps = 60, frameCount = 0, fpsUpdateTime = Date.now();
     let mouseX = -100, mouseY = -100, mouseInCanvas = false;
+    let lastFrameTime = Date.now();
 
     function makeCrack(x = null, y = null) {
         if (cracks.length < CONFIG.MAX_CRACKS) {
@@ -98,8 +99,19 @@ window.onload = function() {
     }
 
     function animate() {
-        frameCount++;
+        // FPS limiting
         const currentTime = Date.now();
+        if (CONFIG.TARGET_FPS > 0) {
+            const targetFrameTime = 1000 / CONFIG.TARGET_FPS;
+            const elapsed = currentTime - lastFrameTime;
+            if (elapsed < targetFrameTime) {
+                requestAnimationFrame(animate);
+                return;
+            }
+            lastFrameTime = currentTime - (elapsed % targetFrameTime);
+        }
+        
+        frameCount++;
         if (currentTime - fpsUpdateTime >= 1000) {
             fps = Math.round(frameCount * 1000 / (currentTime - fpsUpdateTime));
             frameCount = 0; fpsUpdateTime = currentTime;
