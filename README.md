@@ -1,4 +1,3 @@
-```markdown
 # Substrate Visualizer
 
 An interactive generative art visualization optimized for **KDE Plasma HTML Wallpapers**. Watch organic crack patterns grow and branch across your desktop with particle effects and smooth animations.
@@ -34,15 +33,17 @@ An interactive generative art visualization optimized for **KDE Plasma HTML Wall
 
 ## Installation for KDE Plasma
 
-```
 ### Plasma Wallpaper Plugin (Recommended)
 
 1. Install **HTML Wallpaper** plugin from KDE Store:
-```
-# Via System Settings
-Right-click desktop → Configure Desktop and Wallpaper → Get New Plugins → Search "HTML Wallpaper" → Install
 
-# Or via command line
+**Via System Settings:**
+```
+Right-click desktop → Configure Desktop and Wallpaper → Get New Plugins → Search "HTML Wallpaper" → Install
+```
+
+**Or via command line:**
+```
 kpackagetool5 --type=Plasma/Wallpaper --install com.github.uncommonsense.htmlwallpaper
 ```
 
@@ -68,7 +69,6 @@ file:///home/YOUR_USERNAME/.local/share/wallpapers/substrate/Substrate.html?conf
 ```
 
 7. Click **Apply**
-```
 
 ### Performance Tips for KDE
 
@@ -113,7 +113,7 @@ Substrate.html?config=myconfig.js       → loads custom config
 
 Edit `config.js` or `config-oled.js` to customize behavior:
 
-### Line Behavior
+#### Line Behavior
 ```
 STEP: 0.7,                    // Line speed (pixels per frame)
 CRACKS_PER_100K_PIXELS: 1,    // Lines per 100k pixels (dynamic scaling)
@@ -124,21 +124,21 @@ CIRCLE_PERCENT: 40,           // Curved line probability (%)
 BRANCH_MODE: 'perpendicular', // 'perpendicular', 'opposite', 'any'
 ```
 
-### Visual Effects
+#### Visual Effects
 ```
 LINE_WIDTH: 1,          // Crack line thickness
 GRAINS: 64,             // Sand particles per line
 SAND_MODE: 'both',      // 'single', 'both', 'none'
 ```
 
-### Line Drift (Organic Bending)
+#### Line Drift (Organic Bending)
 ```
 LINE_DRIFT_ENABLED: false,    // Enable gradual line bending
 LINE_DRIFT_AMOUNT: 2,         // Max angle change per frame (degrees)
 LINE_DRIFT_FREQUENCY: 0.3,    // Drift probability (0-1)
 ```
 
-### Particle Effects
+#### Particle Effects
 ```
 SPARKLER_ENABLED: true,       // Particles at line tips
 SPARK_SPAWN_RATE: 3,          // Sparks per frame
@@ -149,7 +149,7 @@ CURSOR_SPARKS_ENABLED: true,  // Cursor trail effect
 CURSOR_SPARK_RATE: 2,         // Sparks per frame at cursor
 ```
 
-### Animation Timing
+#### Animation Timing
 ```
 RESET_AFTER_SECONDS: 60,      // Auto-reset timer (0 = disabled)
 FADE_OUT_SECONDS: 3,          // Soft fade duration
@@ -158,7 +158,7 @@ HARD_FADE_SECONDS: 2,         // Hard fade to black duration
 HARD_FADE_IN_SECONDS: 2,      // Fade in duration after hard reset
 ```
 
-### Mouse Interaction
+#### Mouse Interaction
 ```
 CLICK_SPAWN_ENABLED: true,     // Spawn line on click
 CURSOR_SPARKS_ENABLED: true,   // Cursor sparkle effect
@@ -263,5 +263,3 @@ COLORS: [                      // Vibrant glowing colors
 ---
 
 **Enjoy your living desktop wallpaper!** 🎨✨
-
-```
