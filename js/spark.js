@@ -1,5 +1,5 @@
 // Spark object pool for performance
-export const SparkPool = {
+const SparkPool = {
     pool: [],
     maxSize: 1000,
     
@@ -21,75 +21,74 @@ export const SparkPool = {
     }
 };
 
-export class Spark {
-    constructor(x, y, color) {
-        this.x = x; 
-        this.y = y; 
-        this.color = color;
-        this.colorKey = `${color[0]},${color[1]},${color[2]}`;
-        const angle = Math.random() * Math.PI * 2;
-        const speed = window.CONFIG.SPARK_SPEED_MIN + Math.random() * (window.CONFIG.SPARK_SPEED_MAX - window.CONFIG.SPARK_SPEED_MIN);
-        this.vx = Math.cos(angle) * speed;
-        this.vy = Math.sin(angle) * speed;
-        this.life = window.CONFIG.SPARK_LIFETIME;
-        this.maxLife = window.CONFIG.SPARK_LIFETIME;
-    }
-
-    reset(x, y, color) {
-        this.x = x;
-        this.y = y;
-        this.color = color;
-        this.colorKey = `${color[0]},${color[1]},${color[2]}`;
-        const angle = Math.random() * Math.PI * 2;
-        const speed = window.CONFIG.SPARK_SPEED_MIN + Math.random() * (window.CONFIG.SPARK_SPEED_MAX - window.CONFIG.SPARK_SPEED_MIN);
-        this.vx = Math.cos(angle) * speed;
-        this.vy = Math.sin(angle) * speed;
-        this.life = window.CONFIG.SPARK_LIFETIME;
-        this.maxLife = window.CONFIG.SPARK_LIFETIME;
-    }
-
-    update() {
-        this.x += this.vx; 
-        this.y += this.vy;
-        this.life--; 
-        this.vy += 0.05;
-    }
-
-    draw(glowCtx, fadingIn) {
-        const fadeMultiplier = fadingIn ? 0.5 : 1;
-        const alpha = (this.life / this.maxLife) * fadeMultiplier;
-        
-        if (window.CONFIG.SPARK_GLOW > 0) {
-            // Use cached gradient pattern
-            if (!Spark.gradientCache[this.colorKey]) {
-                const tempCanvas = document.createElement('canvas');
-                const size = window.CONFIG.SPARK_GLOW * 2 + 2;
-                tempCanvas.width = size;
-                tempCanvas.height = size;
-                const tempCtx = tempCanvas.getContext('2d');
-                const gradient = tempCtx.createRadialGradient(size/2, size/2, 0, size/2, size/2, window.CONFIG.SPARK_GLOW);
-                gradient.addColorStop(0, `rgba(${this.color[0]},${this.color[1]},${this.color[2]},0.3)`);
-                gradient.addColorStop(1, `rgba(${this.color[0]},${this.color[1]},${this.color[2]},0)`);
-                tempCtx.fillStyle = gradient;
-                tempCtx.fillRect(0, 0, size, size);
-                Spark.gradientCache[this.colorKey] = tempCanvas;
-            }
-            
-            glowCtx.globalAlpha = alpha;
-            glowCtx.drawImage(Spark.gradientCache[this.colorKey], 
-                this.x - window.CONFIG.SPARK_GLOW - 1, 
-                this.y - window.CONFIG.SPARK_GLOW - 1);
-            glowCtx.globalAlpha = 1;
-        }
-        
-        glowCtx.fillStyle = `rgba(${this.color[0]},${this.color[1]},${this.color[2]},${alpha})`;
-        glowCtx.fillRect(Math.floor(this.x), Math.floor(this.y), window.CONFIG.SPARK_SIZE, window.CONFIG.SPARK_SIZE);
-    }
-
-    isDead() {
-        return this.life <= 0;
-    }
+function Spark(x, y, color) {
+    this.x = x; 
+    this.y = y; 
+    this.color = color;
+    this.colorKey = `${color[0]},${color[1]},${color[2]}`;
+    const angle = Math.random() * Math.PI * 2;
+    const speed = CONFIG.SPARK_SPEED_MIN + Math.random() * (CONFIG.SPARK_SPEED_MAX - CONFIG.SPARK_SPEED_MIN);
+    this.vx = Math.cos(angle) * speed;
+    this.vy = Math.sin(angle) * speed;
+    this.life = CONFIG.SPARK_LIFETIME;
+    this.maxLife = CONFIG.SPARK_LIFETIME;
 }
+
+// Reset spark for reuse
+Spark.prototype.reset = function(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.color = color;
+    this.colorKey = `${color[0]},${color[1]},${color[2]}`;
+    const angle = Math.random() * Math.PI * 2;
+    const speed = CONFIG.SPARK_SPEED_MIN + Math.random() * (CONFIG.SPARK_SPEED_MAX - CONFIG.SPARK_SPEED_MIN);
+    this.vx = Math.cos(angle) * speed;
+    this.vy = Math.sin(angle) * speed;
+    this.life = CONFIG.SPARK_LIFETIME;
+    this.maxLife = CONFIG.SPARK_LIFETIME;
+};
 
 // Gradient cache to avoid recreating gradients every frame
 Spark.gradientCache = {};
+
+Spark.prototype.update = function() {
+    this.x += this.vx; 
+    this.y += this.vy;
+    this.life--; 
+    this.vy += 0.05;
+};
+
+Spark.prototype.draw = function(glowCtx, fadingIn) {
+    const fadeMultiplier = fadingIn ? 0.5 : 1;
+    const alpha = (this.life / this.maxLife) * fadeMultiplier;
+    
+    if (CONFIG.SPARK_GLOW > 0) {
+        // Use cached gradient pattern
+        if (!Spark.gradientCache[this.colorKey]) {
+            const tempCanvas = document.createElement('canvas');
+            const size = CONFIG.SPARK_GLOW * 2 + 2;
+            tempCanvas.width = size;
+            tempCanvas.height = size;
+            const tempCtx = tempCanvas.getContext('2d');
+            const gradient = tempCtx.createRadialGradient(size/2, size/2, 0, size/2, size/2, CONFIG.SPARK_GLOW);
+            gradient.addColorStop(0, `rgba(${this.color[0]},${this.color[1]},${this.color[2]},0.3)`);
+            gradient.addColorStop(1, `rgba(${this.color[0]},${this.color[1]},${this.color[2]},0)`);
+            tempCtx.fillStyle = gradient;
+            tempCtx.fillRect(0, 0, size, size);
+            Spark.gradientCache[this.colorKey] = tempCanvas;
+        }
+        
+        glowCtx.globalAlpha = alpha;
+        glowCtx.drawImage(Spark.gradientCache[this.colorKey], 
+            this.x - CONFIG.SPARK_GLOW - 1, 
+            this.y - CONFIG.SPARK_GLOW - 1);
+        glowCtx.globalAlpha = 1;
+    }
+    
+    glowCtx.fillStyle = `rgba(${this.color[0]},${this.color[1]},${this.color[2]},${alpha})`;
+    glowCtx.fillRect(Math.floor(this.x), Math.floor(this.y), CONFIG.SPARK_SIZE, CONFIG.SPARK_SIZE);
+};
+
+Spark.prototype.isDead = function() {
+    return this.life <= 0;
+};
