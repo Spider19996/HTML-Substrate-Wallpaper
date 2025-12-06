@@ -40,7 +40,7 @@ cd substrate-visualizer
 
 text
 
-2. Open `index.html` in your web browser - no build process required!
+2. Open `Substrate.html` in your web browser - no build process required!
 
 ## Configuration
 
