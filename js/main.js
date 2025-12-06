@@ -29,11 +29,6 @@ window.onload = function() {
         window.CONFIG = ConfigValidator.defaults;
     }
     
-    // Display config errors to user if any
-    if (configErrors.length > 0) {
-        showConfigWarning(configErrors);
-    }
-    
     let canvasWidth = window.innerWidth;
     let canvasHeight = window.innerHeight;
     canvas.width = canvasWidth; canvas.height = canvasHeight;
@@ -52,64 +47,9 @@ window.onload = function() {
     let mouseX = -100, mouseY = -100, mouseInCanvas = false;
     let lastFrameTime = Date.now();
     let resizeTimeout = null;
-
-    function showConfigWarning(errors) {
-        const warningDiv = document.createElement('div');
-        warningDiv.id = 'config-warning';
-        warningDiv.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255, 50, 50, 0.95);
-            color: white;
-            padding: 20px 30px;
-            border-radius: 10px;
-            font-family: monospace;
-            font-size: 14px;
-            max-width: 600px;
-            max-height: 400px;
-            overflow-y: auto;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            z-index: 10000;
-            line-height: 1.5;
-        `;
-        
-        let html = '<strong style="font-size: 16px;">⚠️ Configuration Warning</strong><br><br>';
-        html += '<div style="text-align: left;">';
-        errors.forEach(error => {
-            html += '• ' + error + '<br>';
-        });
-        html += '</div><br>';
-        html += '<div style="text-align: center; margin-top: 10px;">';
-        html += '<button id="dismiss-warning" style="';
-        html += 'background: white; color: #ff3232; border: none; padding: 8px 20px; ';
-        html += 'border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px;';
-        html += '">Dismiss (5s)</button>';
-        html += '</div>';
-        
-        warningDiv.innerHTML = html;
-        document.body.appendChild(warningDiv);
-        
-        // Auto-dismiss after 5 seconds
-        let countdown = 5;
-        const dismissBtn = document.getElementById('dismiss-warning');
-        const interval = setInterval(() => {
-            countdown--;
-            if (countdown > 0) {
-                dismissBtn.textContent = `Dismiss (${countdown}s)`;
-            } else {
-                clearInterval(interval);
-                warningDiv.remove();
-            }
-        }, 1000);
-        
-        // Manual dismiss
-        dismissBtn.addEventListener('click', () => {
-            clearInterval(interval);
-            warningDiv.remove();
-        });
-    }
+    let warningText = configErrors.length > 0 ? configErrors : null;
+    let warningStartTime = configErrors.length > 0 ? Date.now() : null;
+    const warningDuration = 8000; // 8 seconds
 
     function makeCrack(x = null, y = null) {
         if (cracks.length < CONFIG.MAX_CRACKS) {
@@ -306,6 +246,63 @@ window.onload = function() {
     
     updateFPSCounter();
 
+    function drawConfigWarning() {
+        if (!warningText || !warningStartTime) return;
+        
+        const elapsed = Date.now() - warningStartTime;
+        if (elapsed > warningDuration) {
+            warningText = null;
+            warningStartTime = null;
+            return;
+        }
+        
+        // Calculate fade out in last 2 seconds
+        let alpha = 1;
+        if (elapsed > warningDuration - 2000) {
+            alpha = (warningDuration - elapsed) / 2000;
+        }
+        
+        glowCtx.save();
+        glowCtx.textAlign = 'left';
+        glowCtx.font = '14px monospace';
+        
+        const padding = 20;
+        const lineHeight = 20;
+        let y = padding + lineHeight;
+        
+        // Draw warning header
+        glowCtx.fillStyle = `rgba(255, 50, 50, ${alpha})`;
+        glowCtx.font = 'bold 16px monospace';
+        glowCtx.fillText('⚠️ Configuration Warning', padding, y);
+        y += lineHeight * 1.5;
+        
+        // Draw warning messages
+        glowCtx.font = '13px monospace';
+        glowCtx.fillStyle = `rgba(255, 100, 100, ${alpha})`;
+        warningText.forEach(error => {
+            // Word wrap for long messages
+            const maxWidth = canvasWidth - padding * 2;
+            const words = error.split(' ');
+            let line = '';
+            
+            words.forEach(word => {
+                const testLine = line + word + ' ';
+                const metrics = glowCtx.measureText(testLine);
+                if (metrics.width > maxWidth && line !== '') {
+                    glowCtx.fillText('• ' + line, padding, y);
+                    y += lineHeight;
+                    line = word + ' ';
+                } else {
+                    line = testLine;
+                }
+            });
+            glowCtx.fillText('• ' + line, padding, y);
+            y += lineHeight;
+        });
+        
+        glowCtx.restore();
+    }
+
     function animate() {
         // FPS limiting
         const currentTime = Date.now();
@@ -357,6 +354,9 @@ window.onload = function() {
                 reset();
             }
         }
+        
+        // Config warning (drawn before FPS counter)
+        drawConfigWarning();
         
         // FPS Counter (only drawing, update happens in idle callback)
         if (CONFIG.FPS_COUNTER_ENABLED) {
