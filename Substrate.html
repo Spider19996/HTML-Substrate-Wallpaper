@@ -39,6 +39,8 @@ const CONFIG = {
     
     // Mouse interaction
     CLICK_SPAWN_ENABLED: true,     // Enable spawning cracks on click
+    CURSOR_SPARKS_ENABLED: true,   // Enable sparks at cursor (kann ausgeschaltet werden)
+    CURSOR_SPARK_RATE: 2,          // Sparks per frame at cursor
     
     // Normal colors (current: vibrant)
     FG_COLOR: [0, 0, 0],          // Line color RGB
@@ -108,6 +110,11 @@ window.onload = function() {
     let hardFading = false;
     let fadingIn = false;
     let fadeInStartTime = 0;
+    
+    // Mouse position tracking
+    let mouseX = -100;
+    let mouseY = -100;
+    let mouseInCanvas = false;
 
 
     function getCGrid(x, y) {
@@ -271,11 +278,29 @@ window.onload = function() {
         makeCrack(x, y);
     }
     
+    function handleMouseMove(e) {
+        const rect = canvas.getBoundingClientRect();
+        mouseX = e.clientX - rect.left;
+        mouseY = e.clientY - rect.top;
+        mouseInCanvas = true;
+    }
+    
+    function handleMouseLeave() {
+        mouseInCanvas = false;
+    }
+    
     canvas.addEventListener('click', handleClick);
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mouseleave', handleMouseLeave);
     canvas.addEventListener('touchstart', (e) => {
         e.preventDefault();
         const touch = e.touches[0];
         handleClick(touch);
+    });
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        handleMouseMove(touch);
     });
 
 
@@ -503,6 +528,17 @@ window.onload = function() {
     function makeCrack(x = null, y = null) {
         if (cracks.length < CONFIG.MAX_CRACKS) cracks.push(new Crack(x, y));
     }
+    
+    
+    // Spawn cursor sparks
+    function spawnCursorSparks() {
+        if (!CONFIG.CURSOR_SPARKS_ENABLED || !mouseInCanvas) return;
+        
+        const cursorColor = FG_COLOR;
+        for (let i = 0; i < CONFIG.CURSOR_SPARK_RATE; i++) {
+            sparks.push(new Spark(mouseX, mouseY, cursorColor));
+        }
+    }
 
 
     // Initial setup
@@ -528,6 +564,9 @@ window.onload = function() {
                 if (!cracks[i].alive) cracks.splice(i, 1);
             }
         }
+        
+        // Spawn cursor sparks
+        spawnCursorSparks();
         
         // Update and draw sparks
         sparks.forEach(s => s.update());
