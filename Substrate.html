@@ -15,37 +15,51 @@ body { margin: 0; padding: 0; overflow: hidden; background: #fff; }
 <script>
 // ========== CONFIGURATION ==========
 const CONFIG = {
-    STEP: 0.7,                     // Line speed (Original: 0.42)
-    INITIAL_CRACKS: 3,             // Number of starting lines (Original: 3)
-    MAX_CRACKS: 100,               // Maximum concurrent lines (Original: no limit)
-    CIRCLE_PERCENT: 40,            // Probability for curves in % (Original: 10)
-    GRAINS: 64,                    // Number of sand particles (Original: 64)
-    RESET_AFTER_SECONDS: 60,      // Auto-reset after X seconds (Original: no reset, 0 = disabled)
-    FADE_OUT_SECONDS: 3,           // Fade out duration before reset (0 = hard reset)
-    HARD_RESET_EVERY: 3,           // Complete fade to black after X soft resets (0 = never)
-    HARD_FADE_SECONDS: 2,          // Duration of complete fade to black
-    HARD_FADE_IN_SECONDS: 2,       // Duration of fade in after hard reset
-    LINE_WIDTH: 1,                 // Width of crack lines (Original: 1, higher = smoother but thicker)
-    OLED_MODE: true,               // OLED mode: black background, bright lines (Original: false)
+    // Line behavior
+    STEP: 0.7,                     // Line speed in pixels per frame
+    INITIAL_CRACKS: 3,             // Number of starting lines
+    MAX_CRACKS: 100,               // Maximum concurrent lines
+    CIRCLE_PERCENT: 40,            // Probability for curved lines in %
     
-    // Sparkler effect (Wunderkerze)
-    SPARKLER_ENABLED: true,        // Enable sparkler effect at tip
+    // Visual effects
+    GRAINS: 64,                    // Number of sand particles per line
+    SAND_MODE: 'both',           // 'both' (both sides), 'single' (one side), 'none' (disabled)
+    LINE_WIDTH: 1,                 // Width of crack lines
+    OLED_MODE: true,               // Black background with bright lines
+    
+    // Animation timing
+    RESET_AFTER_SECONDS: 60,       // Auto-reset timer (0 = disabled)
+    FADE_OUT_SECONDS: 3,           // Soft fade duration before reset
+    HARD_RESET_EVERY: 3,           // Hard reset after X soft resets (0 = never)
+    HARD_FADE_SECONDS: 2,          // Hard fade to black duration
+    HARD_FADE_IN_SECONDS: 2,       // Fade in after hard reset duration
+    
+    // Branching behavior
+    BRANCH_MODE: 'perpendicular',  // 'perpendicular' (±90°), 'opposite' (±90°/±180°), 'any' (0-360°)
+    
+    // Line drift (bending while drawing)
+    LINE_DRIFT_ENABLED: false,     // Lines change direction while drawing
+    LINE_DRIFT_AMOUNT: 2,          // Max angle change per frame in degrees
+    LINE_DRIFT_FREQUENCY: 0.3,     // Drift probability per frame (0-1)
+    
+    // Sparkler effect
+    SPARKLER_ENABLED: true,        // Particle effect at line tips
     SPARK_SPAWN_RATE: 3,           // New sparks per frame
     SPARK_SPEED_MIN: 0.5,          // Minimum spark velocity
     SPARK_SPEED_MAX: 2.5,          // Maximum spark velocity
-    SPARK_LIFETIME: 15,            // Frames until spark disappears
-    SPARK_SIZE: 1.3,               // Spark particle size (sehr klein für Sandkorn-Effekt)
-    SPARK_GLOW: 2.0,               // Minimaler Glow radius
+    SPARK_LIFETIME: 15,            // Spark lifetime in frames
+    SPARK_SIZE: 1.3,               // Spark particle size in pixels
+    SPARK_GLOW: 2.0,               // Glow radius around sparks
     
     // Mouse interaction
-    CLICK_SPAWN_ENABLED: true,     // Enable spawning cracks on click
-    CURSOR_SPARKS_ENABLED: true,   // Enable sparks at cursor (kann ausgeschaltet werden)
-    CURSOR_SPARK_RATE: 2,          // Sparks per frame at cursor
+    CLICK_SPAWN_ENABLED: true,     // Spawn line on click
+    CURSOR_SPARKS_ENABLED: true,   // Show sparks at cursor position
+    CURSOR_SPARK_RATE: 2,          // Cursor sparks per frame
     
-    // Normal colors (current: vibrant)
-    FG_COLOR: [0, 0, 0],          // Line color RGB
-    BG_COLOR: [255, 255, 255],    // Background color RGB
-    COLORS: [                      // Sand colors RGB
+    // Normal mode colors
+    FG_COLOR: [0, 0, 0],
+    BG_COLOR: [255, 255, 255],
+    COLORS: [
         [255, 50, 50],    // Bright red
         [50, 255, 50],    // Bright green
         [50, 50, 255],    // Bright blue
@@ -54,10 +68,10 @@ const CONFIG = {
         [0, 255, 255]     // Cyan
     ],
     
-    // OLED colors (automatically used when OLED_MODE = true)
-    OLED_FG_COLOR: [255, 255, 255],      // White lines
-    OLED_BG_COLOR: [0, 0, 0],            // Black background
-    OLED_COLORS: [                        // Glowing colors
+    // OLED mode colors (auto-selected when OLED_MODE = true)
+    OLED_FG_COLOR: [255, 255, 255],
+    OLED_BG_COLOR: [0, 0, 0],
+    OLED_COLORS: [
         [0, 255, 255],    // Cyan
         [255, 0, 255],    // Magenta
         [255, 255, 0],    // Yellow
@@ -83,25 +97,22 @@ window.onload = function() {
     glowCanvas.width = canvasWidth;
     glowCanvas.height = canvasHeight;
     
-    // Enable antialiasing and smooth rendering
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     glowCtx.imageSmoothingEnabled = true;
     glowCtx.imageSmoothingQuality = 'high';
 
-
-    // Select color scheme based on OLED_MODE
+    // Select color scheme
     const FG_COLOR = CONFIG.OLED_MODE ? CONFIG.OLED_FG_COLOR : CONFIG.FG_COLOR;
     const BG_COLOR = CONFIG.OLED_MODE ? CONFIG.OLED_BG_COLOR : CONFIG.BG_COLOR;
     const COLORS = CONFIG.OLED_MODE ? CONFIG.OLED_COLORS : CONFIG.COLORS;
     
-    // Set body background
     document.body.style.background = `rgb(${BG_COLOR[0]},${BG_COLOR[1]},${BG_COLOR[2]})`;
 
-
+    // State variables
     let cracks = [];
     let sparks = [];
-    let cgrid = new Array(canvasWidth * canvasHeight).fill(10001);
+    let cgrid = new Array(canvasWidth * canvasHeight).fill(10001);  // Collision grid (10001 = empty)
     let nextCrackId = 0;
     let startTime = Date.now();
     let fadingOut = false;
@@ -111,17 +122,17 @@ window.onload = function() {
     let fadingIn = false;
     let fadeInStartTime = 0;
     
-    // Mouse position tracking
+    // Mouse tracking
     let mouseX = -100;
     let mouseY = -100;
     let mouseInCanvas = false;
 
 
+    // Collision grid helpers
     function getCGrid(x, y) {
         if (x < 0 || x >= canvasWidth || y < 0 || y >= canvasHeight) return 10001;
         return cgrid[Math.floor(x) + Math.floor(y) * canvasWidth];
     }
-
 
     function setCGrid(x, y, val) {
         if (x < 0 || x >= canvasWidth || y < 0 || y >= canvasHeight) return;
@@ -129,13 +140,13 @@ window.onload = function() {
     }
 
 
+    // Fade animation helpers
     function getFadeProgress() {
         if (!fadingOut) return 0;
         const elapsed = (Date.now() - fadeStartTime) / 1000;
         const duration = hardFading ? CONFIG.HARD_FADE_SECONDS : CONFIG.FADE_OUT_SECONDS;
         return Math.min(elapsed / duration, 1);
     }
-
 
     function getFadeInProgress() {
         if (!fadingIn) return 1;
@@ -162,7 +173,6 @@ window.onload = function() {
         fadingOut = true;
         fadeStartTime = Date.now();
         
-        // Check if hard reset is needed
         if (CONFIG.HARD_RESET_EVERY > 0 && resetCounter >= CONFIG.HARD_RESET_EVERY - 1) {
             hardFading = true;
         } else {
@@ -181,12 +191,11 @@ window.onload = function() {
         const fadeProgress = getFadeProgress();
         
         if (hardFading) {
-            // Fade completely to black
-            const alpha = 0.06; // Stronger fade for hard reset
+            // Complete fade to black
+            const alpha = 0.06;
             ctx.fillStyle = `rgba(${BG_COLOR[0]},${BG_COLOR[1]},${BG_COLOR[2]},${alpha})`;
             ctx.fillRect(0, 0, canvasWidth, canvasHeight);
             
-            // When completely faded, clear and reset
             if (fadeProgress >= 1) {
                 ctx.fillStyle = `rgb(${BG_COLOR[0]},${BG_COLOR[1]},${BG_COLOR[2]})`;
                 ctx.fillRect(0, 0, canvasWidth, canvasHeight);
@@ -195,7 +204,7 @@ window.onload = function() {
                 startFadeIn();
             }
         } else {
-            // Normal soft fade
+            // Soft fade
             const alpha = 0.04;
             ctx.fillStyle = `rgba(${BG_COLOR[0]},${BG_COLOR[1]},${BG_COLOR[2]},${alpha})`;
             ctx.fillRect(0, 0, canvasWidth, canvasHeight);
@@ -216,36 +225,29 @@ window.onload = function() {
         canvasWidth = window.innerWidth;
         canvasHeight = window.innerHeight;
         
-        // Create temporary canvas to preserve content
+        // Preserve existing content
         const tempCanvas = document.createElement('canvas');
         tempCanvas.width = oldWidth;
         tempCanvas.height = oldHeight;
         const tempCtx = tempCanvas.getContext('2d');
         tempCtx.drawImage(canvas, 0, 0);
         
-        // Resize both canvases
         canvas.width = canvasWidth;
         canvas.height = canvasHeight;
         glowCanvas.width = canvasWidth;
         glowCanvas.height = canvasHeight;
         
-        // Restore rendering settings
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         glowCtx.imageSmoothingEnabled = true;
         glowCtx.imageSmoothingQuality = 'high';
         
-        // Fill new area with background
         ctx.fillStyle = `rgb(${BG_COLOR[0]},${BG_COLOR[1]},${BG_COLOR[2]})`;
         ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-        
-        // Draw old content
         ctx.drawImage(tempCanvas, 0, 0);
         
-        // Create new cgrid and copy old data
+        // Rebuild collision grid
         cgrid = new Array(canvasWidth * canvasHeight).fill(10001);
-        
-        // Copy old grid data
         const copyWidth = Math.min(oldWidth, canvasWidth);
         const copyHeight = Math.min(oldHeight, canvasHeight);
         
@@ -258,8 +260,6 @@ window.onload = function() {
         }
     }
 
-
-    // Debounced resize handler
     let resizeTimeout;
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimeout);
@@ -267,7 +267,7 @@ window.onload = function() {
     });
 
 
-    // Mouse/Touch interaction
+    // Mouse event handlers
     function handleClick(e) {
         if (!CONFIG.CLICK_SPAWN_ENABLED) return;
         
@@ -304,14 +304,39 @@ window.onload = function() {
     });
 
 
-    // Spark particle class
+    // Calculate new branch angle based on mode
+    function getBranchAngle(baseAngle) {
+        let angleOffset;
+        
+        switch(CONFIG.BRANCH_MODE) {
+            case 'perpendicular':
+                angleOffset = (Math.random() > 0.5 ? 90 : -90);
+                break;
+                
+            case 'opposite':
+                const angles = [90, -90, 180, -180];
+                angleOffset = angles[Math.floor(Math.random() * angles.length)];
+                break;
+                
+            case 'any':
+                angleOffset = Math.random() * 360;
+                return angleOffset + (Math.random() * 4 - 2);
+                
+            default:
+                angleOffset = (Math.random() > 0.5 ? 90 : -90);
+        }
+        
+        return baseAngle + angleOffset + (Math.random() * 4 - 2);
+    }
+
+
+    // Spark particle
     class Spark {
         constructor(x, y, color) {
             this.x = x;
             this.y = y;
             this.color = color;
             
-            // Random direction and speed
             const angle = Math.random() * Math.PI * 2;
             const speed = CONFIG.SPARK_SPEED_MIN + Math.random() * (CONFIG.SPARK_SPEED_MAX - CONFIG.SPARK_SPEED_MIN);
             this.vx = Math.cos(angle) * speed;
@@ -325,16 +350,14 @@ window.onload = function() {
             this.x += this.vx;
             this.y += this.vy;
             this.life--;
-            
-            // Gravity effect
-            this.vy += 0.05;
+            this.vy += 0.05;  // Gravity
         }
         
         draw() {
             const fadeMultiplier = fadingIn ? getFadeInProgress() : 1;
             const alpha = (this.life / this.maxLife) * fadeMultiplier;
             
-            // Sehr subtiler Glow (optional)
+            // Glow effect
             if (CONFIG.SPARK_GLOW > 0) {
                 const gradient = glowCtx.createRadialGradient(this.x, this.y, 0, this.x, this.y, CONFIG.SPARK_GLOW);
                 gradient.addColorStop(0, `rgba(${this.color[0]},${this.color[1]},${this.color[2]},${alpha * 0.3})`);
@@ -346,7 +369,7 @@ window.onload = function() {
                 glowCtx.fill();
             }
             
-            // Sandkorn-artiger Punkt
+            // Core particle
             glowCtx.fillStyle = `rgba(${this.color[0]},${this.color[1]},${this.color[2]},${alpha})`;
             glowCtx.fillRect(Math.floor(this.x), Math.floor(this.y), CONFIG.SPARK_SIZE, CONFIG.SPARK_SIZE);
         }
@@ -357,6 +380,7 @@ window.onload = function() {
     }
 
 
+    // Crack line
     class Crack {
         constructor(startX = null, startY = null) {
             this.id = nextCrackId++;
@@ -379,7 +403,7 @@ window.onload = function() {
             let px = Math.floor(this.x);
             let py = Math.floor(this.y);
             
-            // Only search for existing crack if not manually placed
+            // Find existing crack to branch from (unless manually placed)
             if (!this.manualStart) {
                 let found = false, timeout = 0;
                 while (!found && timeout < 1000) {
@@ -395,13 +419,15 @@ window.onload = function() {
             }
             
             const oldA = getCGrid(px, py);
-            let a = oldA + (Math.random() > 0.5 ? 90 : -90) + (Math.random() * 4 - 2);
+            let a;
             
-            // If manually placed and no existing crack found, use random angle
             if (this.manualStart && oldA > 10000) {
-                a = Math.random() * 360;
+                a = Math.random() * 360;  // Random angle if no existing crack
+            } else {
+                a = getBranchAngle(oldA);  // Branch from existing crack
             }
             
+            // Determine if this will be a curved line
             if (Math.random() * 100 < CONFIG.CIRCLE_PERCENT) {
                 this.curved = true;
                 this.degreesDrawn = 0;
@@ -413,7 +439,7 @@ window.onload = function() {
                 this.xs = r * (1 - Math.cos(radInc));
             }
             
-            // For manual placement, start exactly at click position
+            // Set starting position
             if (this.manualStart) {
                 this.t = a;
             } else {
@@ -426,23 +452,29 @@ window.onload = function() {
             this.lastY = this.y;
         }
         
-        regionColor() {
+        drawSandRegion(direction) {
+            // Find perpendicular region for sand particles
             let rx = this.x, ry = this.y, openspace = true;
+            
+            // Direction multiplier for both sides
+            const dirMult = direction;
+            
             while (openspace) {
-                rx += 0.81 * Math.sin(this.t * Math.PI / 180);
-                ry -= 0.81 * Math.cos(this.t * Math.PI / 180);
+                rx += dirMult * 0.81 * Math.sin(this.t * Math.PI / 180);
+                ry -= dirMult * 0.81 * Math.cos(this.t * Math.PI / 180);
                 const cx = Math.floor(rx), cy = Math.floor(ry);
                 if (cx < 0 || cx >= canvasWidth || cy < 0 || cy >= canvasHeight || getCGrid(cx, cy) <= 10000) {
                     openspace = false;
                 }
             }
+            
             this.sandG += Math.random() * 0.1 - 0.05;
             this.sandG = Math.max(0, Math.min(1, this.sandG));
             const w = this.sandG / (CONFIG.GRAINS - 1);
             
-            // Only apply fade-in multiplier, not fade-out
             const fadeMultiplier = fadingIn ? getFadeInProgress() : 1;
             
+            // Draw sand particles
             for (let i = 0; i < CONFIG.GRAINS; i++) {
                 const drawX = this.x + (rx - this.x) * Math.sin(this.sandP + Math.sin(i * w));
                 const drawY = this.y + (ry - this.y) * Math.sin(this.sandP + Math.sin(i * w));
@@ -456,11 +488,31 @@ window.onload = function() {
             }
         }
         
+        regionColor() {
+            if (CONFIG.SAND_MODE === 'none') return;
+            
+            if (CONFIG.SAND_MODE === 'both') {
+                this.drawSandRegion(1);   // Right side
+                this.drawSandRegion(-1);  // Left side
+            } else {
+                this.drawSandRegion(1);   // Single side only
+            }
+        }
+        
         spawnSparks() {
             if (!CONFIG.SPARKLER_ENABLED) return;
             
             for (let i = 0; i < CONFIG.SPARK_SPAWN_RATE; i++) {
                 sparks.push(new Spark(this.x, this.y, this.sandColor));
+            }
+        }
+        
+        applyDrift() {
+            if (!CONFIG.LINE_DRIFT_ENABLED || this.curved) return;
+            
+            if (Math.random() < CONFIG.LINE_DRIFT_FREQUENCY) {
+                const drift = (Math.random() * 2 - 1) * CONFIG.LINE_DRIFT_AMOUNT;
+                this.t += drift;
             }
         }
         
@@ -470,6 +522,9 @@ window.onload = function() {
             this.lastX = this.x;
             this.lastY = this.y;
             
+            this.applyDrift();
+            
+            // Calculate new position
             if (!this.curved) {
                 this.x += CONFIG.STEP * Math.cos(this.t * Math.PI / 180);
                 this.y += CONFIG.STEP * Math.sin(this.t * Math.PI / 180);
@@ -486,10 +541,9 @@ window.onload = function() {
             if (cx >= 0 && cx < canvasWidth && cy >= 0 && cy < canvasHeight) {
                 this.regionColor();
                 
-                // Only apply fade-in multiplier, not fade-out
                 const fadeMultiplier = fadingIn ? getFadeInProgress() : 1;
                 
-                // Draw smooth line instead of single pixel
+                // Draw line segment
                 ctx.strokeStyle = `rgba(${FG_COLOR[0]},${FG_COLOR[1]},${FG_COLOR[2]},${fadeMultiplier})`;
                 ctx.lineWidth = CONFIG.LINE_WIDTH;
                 ctx.lineCap = 'round';
@@ -499,23 +553,27 @@ window.onload = function() {
                 ctx.lineTo(this.x, this.y);
                 ctx.stroke();
                 
-                // Spawn sparks at tip
                 this.spawnSparks();
                 
+                // Check termination conditions
                 if (this.curved && this.degreesDrawn > 360) {
+                    // Curved line completed full circle
                     this.alive = false;
                     if (!fadingOut) {
                         makeCrack(); makeCrack();
                     }
                 } else if (getCGrid(cx, cy) > 10000 || Math.abs(getCGrid(cx, cy) - this.t) < 5) {
+                    // Free space or parallel crack - continue
                     setCGrid(cx, cy, this.t);
                 } else if (Math.abs(getCGrid(cx, cy)) > 2) {
+                    // Collision with non-parallel crack - branch
                     this.alive = false;
                     if (!fadingOut) {
                         makeCrack(); makeCrack();
                     }
                 }
             } else {
+                // Hit canvas boundary - branch
                 this.alive = false;
                 if (!fadingOut) {
                     makeCrack(); makeCrack();
@@ -530,33 +588,29 @@ window.onload = function() {
     }
     
     
-    // Spawn cursor sparks
     function spawnCursorSparks() {
         if (!CONFIG.CURSOR_SPARKS_ENABLED || !mouseInCanvas) return;
         
-        const cursorColor = FG_COLOR;
         for (let i = 0; i < CONFIG.CURSOR_SPARK_RATE; i++) {
-            sparks.push(new Spark(mouseX, mouseY, cursorColor));
+            sparks.push(new Spark(mouseX, mouseY, FG_COLOR));
         }
     }
 
 
-    // Initial setup
+    // Initialize
     ctx.fillStyle = `rgb(${BG_COLOR[0]},${BG_COLOR[1]},${BG_COLOR[2]})`;
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     reset();
 
 
+    // Main animation loop
     function animate() {
-        // Clear glow canvas every frame
         glowCtx.clearRect(0, 0, canvasWidth, canvasHeight);
         
-        // Apply fade overlay BEFORE drawing (fades old content)
         if (fadingOut) {
             applyFadeOverlay();
         }
         
-        // Continue drawing cracks only if NOT fading out
         if (!fadingOut) {
             cracks.forEach(c => c.move());
             
@@ -565,20 +619,17 @@ window.onload = function() {
             }
         }
         
-        // Spawn cursor sparks
         spawnCursorSparks();
         
-        // Update and draw sparks
         sparks.forEach(s => s.update());
         sparks.forEach(s => s.draw());
         sparks = sparks.filter(s => !s.isDead());
         
-        // Check if fade-in is complete
         if (fadingIn && getFadeInProgress() >= 1) {
             fadingIn = false;
         }
         
-        // Check if reset needed
+        // Check if reset is needed
         if (!fadingOut && !fadingIn && (cracks.length === 0 || (CONFIG.RESET_AFTER_SECONDS > 0 && (Date.now() - startTime) / 1000 > CONFIG.RESET_AFTER_SECONDS))) {
             if (CONFIG.FADE_OUT_SECONDS > 0) {
                 startFadeOut();
