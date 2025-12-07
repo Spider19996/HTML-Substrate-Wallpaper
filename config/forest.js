@@ -52,11 +52,14 @@ const CONFIG = {
     // COLORS - FOREST THEME (Earth tones and natural greens)
     FG_COLOR:                [45, 65, 35],    // Dark forest green for main lines
     BG_COLOR:                [245, 240, 230], // Warm off-white/cream background
-    COLORS: [                                 // Forest color palette
-        [34, 139, 34],   // Forest Green
-        [107, 142, 35],  // Olive Drab
+    COLORS: [                                 // Forest color palette with darker greens
+        [34, 80, 34],    // Deep Forest Green
+        [25, 60, 25],    // Very Dark Green
         [85, 107, 47],   // Dark Olive Green
-        [60, 90, 40],    // Deep Forest
+        [60, 90, 40],    // Pine Green
+        [107, 142, 35],  // Olive Drab
+        [46, 70, 38],    // Dark Moss Green
+        [40, 55, 35],    // Shadow Green
         [139, 90, 43],   // Saddle Brown
         [160, 82, 45]    // Sienna (tree bark)
     ]
