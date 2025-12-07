@@ -1,6 +1,6 @@
 const CONFIG = {
     // LINE BEHAVIOR
-    STEP:                    0.7,      // Movement speed of cracks in pixels per frame (higher = faster lines)
+    STEP:                    1.5,      // Movement speed of cracks in pixels per frame (higher = faster lines)
     CRACKS_PER_100K_PIXELS:  1,        // Initial cracks per 100k pixels of screen area (controls pattern density)
     MIN_INITIAL_CRACKS:      2,        // Minimum number of cracks at startup
     MAX_INITIAL_CRACKS:      20,       // Maximum number of cracks at startup
@@ -14,7 +14,7 @@ const CONFIG = {
     
     // ANIMATION TIMING
     RESET_AFTER_SECONDS:     0,        // Disabled - now uses coverage-based reset
-    COVERAGE_RESET_PERCENT:  50,       // Canvas coverage % before reset (0-100, lower = more frequent resets)
+    COVERAGE_RESET_PERCENT:  10,       // Canvas coverage % before reset (0-100, lower = more frequent resets)
     FADE_OUT_SECONDS:        3,        // Duration of fade-out effect in seconds (0 = instant reset)
     HARD_RESET_EVERY:        3,        // Number of soft resets before hard reset (0 = never hard reset, clears everything)
     HARD_FADE_SECONDS:       2,        // Duration of hard fade-out in seconds
