@@ -190,9 +190,15 @@ Crack.prototype.move = function(ctx, sparks, fadingIn, fadingOut, makeCrackFunc,
     if (cx >= 0 && cx < this.canvasWidth && cy >= 0 && cy < this.canvasHeight) {
         this.regionColor(ctx);
         
+        // Round coordinates to half-pixels to reduce aliasing jitter
+        const roundedLastX = Math.round(this.lastX * 2) / 2;
+        const roundedLastY = Math.round(this.lastY * 2) / 2;
+        const roundedX = Math.round(this.x * 2) / 2;
+        const roundedY = Math.round(this.y * 2) / 2;
+        
         // Add line to shared Path2D instead of stroking individually
-        path.moveTo(this.lastX, this.lastY);
-        path.lineTo(this.x, this.y);
+        path.moveTo(roundedLastX, roundedLastY);
+        path.lineTo(roundedX, roundedY);
         
         this.spawnSparks(sparks);
         
