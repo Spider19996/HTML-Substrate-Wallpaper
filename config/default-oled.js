@@ -9,7 +9,7 @@ const CONFIG = {
     
     // VISUAL EFFECTS
     GRAINS:                  64,       // Number of sand grains per region (0 = no sand, higher = more detail but slower)
-    SAND_MODE:               'both',   // Sand drawing mode: 'both' (both sides), 'one' (one side), 'none' (disabled)
+    SAND_MODE:               'one',   // Sand drawing mode: 'both' (both sides), 'one' (one side), 'none' (disabled)
     SAND_ALPHA:              0.3,      // Maximum opacity of sand grains (0.0-1.0, higher = more visible/vibrant colors) - OLED optimized
     LINE_WIDTH:              1,        // Width of crack lines in pixels
     ANTI_ALIASING:           true,     // Enable smooth anti-aliased rendering (true = better quality, false = better performance)
@@ -45,7 +45,7 @@ const CONFIG = {
     CURSOR_SPARK_RATE:       2,        // Number of cursor sparks spawned per frame when enabled
     
     // FPS SETTINGS
-    FPS_COUNTER_ENABLED:     true,     // Display FPS counter on screen
+    FPS_COUNTER_ENABLED:     false,     // Display FPS counter on screen
     FPS_COUNTER_POSITION:    'top-left', // Counter position: 'top-left' or 'top-right'
     FPS_COUNTER_SIZE:        14,       // Font size of FPS counter in pixels
     FPS_COUNTER_COLOR:       [255, 255, 255], // RGB color of FPS counter text [R, G, B] (0-255 each)
