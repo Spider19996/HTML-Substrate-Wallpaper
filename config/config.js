@@ -13,7 +13,7 @@ const CONFIG = {
     LINE_WIDTH:              1,        // Width of crack lines in pixels
     
     // ANIMATION TIMING
-    RESET_AFTER_SECONDS:     60,       // Seconds before automatic reset (0 = only reset when no cracks left)
+    RESET_AFTER_SECONDS:     0,        // Disabled - now uses coverage-based reset (resets at 80% canvas coverage)
     FADE_OUT_SECONDS:        3,        // Duration of fade-out effect in seconds (0 = instant reset)
     HARD_RESET_EVERY:        3,        // Number of soft resets before hard reset (0 = never hard reset, clears everything)
     HARD_FADE_SECONDS:       2,        // Duration of hard fade-out in seconds

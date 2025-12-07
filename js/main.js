@@ -50,6 +50,10 @@ window.onload = function() {
     let warningText = configErrors.length > 0 ? configErrors : null;
     let warningStartTime = configErrors.length > 0 ? Date.now() : null;
     const warningDuration = 8000; // 8 seconds
+    
+    // Coverage tracking
+    let coveredPixels = 0;
+    let totalPixels = canvasWidth * canvasHeight;
 
     function makeCrack(x = null, y = null) {
         if (cracks.length < CONFIG.MAX_CRACKS) {
@@ -64,6 +68,8 @@ window.onload = function() {
         }
         cracks = []; sparks = []; 
         cgrid = new Array(canvasWidth * canvasHeight).fill(10001);
+        coveredPixels = 0;
+        totalPixels = canvasWidth * canvasHeight;
         startTime = Date.now(); fadingOut = false; hardFading = false;
         const area = canvasWidth * canvasHeight;
         const initialCracks = Math.floor(area / 100000 * CONFIG.CRACKS_PER_100K_PIXELS);
@@ -101,6 +107,7 @@ window.onload = function() {
         canvas.height = canvasHeight;
         glowCanvas.width = canvasWidth;
         glowCanvas.height = canvasHeight;
+        totalPixels = canvasWidth * canvasHeight;
         
         // Restore rendering quality after resize
         ctx.imageSmoothingEnabled = true;
@@ -118,14 +125,17 @@ window.onload = function() {
         
         // Create new larger grid and copy old data
         const newGrid = new Array(canvasWidth * canvasHeight).fill(10001);
+        let newCoveredPixels = 0;
         for (let y = 0; y < Math.min(oldHeight, canvasHeight); y++) {
             for (let x = 0; x < Math.min(oldWidth, canvasWidth); x++) {
                 const oldIdx = y * oldWidth + x;
                 const newIdx = y * canvasWidth + x;
                 newGrid[newIdx] = cgrid[oldIdx];
+                if (cgrid[oldIdx] !== 10001) newCoveredPixels++;
             }
         }
         cgrid = newGrid;
+        coveredPixels = newCoveredPixels;
         
         // Update crack references to new grid and dimensions
         for (let i = 0; i < cracks.length; i++) {
@@ -303,6 +313,17 @@ window.onload = function() {
         glowCtx.restore();
     }
 
+    function updateCoverage(x, y) {
+        const idx = Math.floor(y) * canvasWidth + Math.floor(x);
+        if (idx >= 0 && idx < cgrid.length && cgrid[idx] === 10001) {
+            coveredPixels++;
+        }
+    }
+
+    function getCoveragePercent() {
+        return coveredPixels / totalPixels;
+    }
+
     function animate() {
         // FPS limiting
         const currentTime = Date.now();
@@ -325,7 +346,12 @@ window.onload = function() {
         if (!fadingOut) {
             // Remove dead cracks while processing
             for (let i = cracks.length - 1; i >= 0; i--) {
+                const oldCoverage = coveredPixels;
                 cracks[i].move(ctx, sparks, fadingIn, fadingOut, makeCrack);
+                // Track coverage increase from this crack's movement
+                if (cracks[i].alive) {
+                    updateCoverage(cracks[i].x, cracks[i].y);
+                }
                 if (!cracks[i].alive) cracks.splice(i, 1);
             }
         }
@@ -345,8 +371,9 @@ window.onload = function() {
         
         if (fadingIn && getFadeInProgress() >= 1) fadingIn = false;
         
-        if (!fadingOut && !fadingIn && 
-            (cracks.length === 0 || (CONFIG.RESET_AFTER_SECONDS > 0 && (currentTime - startTime) / 1000 > CONFIG.RESET_AFTER_SECONDS))) {
+        // Coverage-based reset
+        const coverage = getCoveragePercent();
+        if (!fadingOut && !fadingIn && (cracks.length === 0 || coverage >= 0.80)) {
             if (CONFIG.FADE_OUT_SECONDS > 0) startFadeOut();
             else {
                 ctx.fillStyle = `rgb(${CONFIG.BG_COLOR[0]},${CONFIG.BG_COLOR[1]},${CONFIG.BG_COLOR[2]})`;
