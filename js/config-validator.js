@@ -10,7 +10,8 @@ const ConfigValidator = {
         GRAINS: 64,
         SAND_MODE: 'both',
         LINE_WIDTH: 1,
-        RESET_AFTER_SECONDS: 60,
+        RESET_AFTER_SECONDS: 0,
+        COVERAGE_RESET_PERCENT: 50,
         FADE_OUT_SECONDS: 3,
         HARD_RESET_EVERY: 3,
         HARD_FADE_SECONDS: 2,
@@ -94,6 +95,7 @@ const ConfigValidator = {
                     break;
 
                 case 'CIRCLE_PERCENT':
+                case 'COVERAGE_RESET_PERCENT':
                     if (isInRange(value, 0, 100)) {
                         validated[key] = value;
                     } else {
