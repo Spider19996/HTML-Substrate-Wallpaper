@@ -152,11 +152,8 @@ Crack.prototype.move = function(ctx, sparks, fadingIn, fadingOut, makeCrackFunc)
     
     if (cx >= 0 && cx < this.canvasWidth && cy >= 0 && cy < this.canvasHeight) {
         this.regionColor(ctx);
-        const fadeMultiplier = fadingIn ? 0.5 : 1;
-        ctx.strokeStyle = `rgba(${CONFIG.FG_COLOR[0]},${CONFIG.FG_COLOR[1]},${CONFIG.FG_COLOR[2]},${fadeMultiplier})`;
-        ctx.lineWidth = CONFIG.LINE_WIDTH;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
+        
+        // Context state is set once in main loop, just draw the line
         ctx.beginPath();
         ctx.moveTo(this.lastX, this.lastY);
         ctx.lineTo(this.x, this.y);

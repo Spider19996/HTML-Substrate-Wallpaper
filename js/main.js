@@ -1,8 +1,8 @@
 window.onload = function() {
     const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d', { alpha: false });
+    const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
     const glowCanvas = document.getElementById('glowCanvas');
-    const glowCtx = glowCanvas.getContext('2d', { alpha: true });
+    const glowCtx = glowCanvas.getContext('2d', { alpha: true, desynchronized: true });
     
     // Validate and sanitize CONFIG or use defaults
     let validatedConfig;
@@ -34,10 +34,17 @@ window.onload = function() {
     canvas.width = canvasWidth; canvas.height = canvasHeight;
     glowCanvas.width = canvasWidth; glowCanvas.height = canvasHeight;
     
-    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
-    glowCtx.imageSmoothingEnabled = true; glowCtx.imageSmoothingQuality = 'high';
+    ctx.imageSmoothingEnabled = false; // Disable for performance
+    glowCtx.imageSmoothingEnabled = false;
 
     document.body.style.background = `rgb(${CONFIG.BG_COLOR[0]},${CONFIG.BG_COLOR[1]},${CONFIG.BG_COLOR[2]})`;
+
+    // Pre-cache color strings
+    let bgColorString = `rgb(${CONFIG.BG_COLOR[0]},${CONFIG.BG_COLOR[1]},${CONFIG.BG_COLOR[2]})`;
+    let fgColorString = `rgba(${CONFIG.FG_COLOR[0]},${CONFIG.FG_COLOR[1]},${CONFIG.FG_COLOR[2]},1)`;
+    let fgColorFadedString = `rgba(${CONFIG.FG_COLOR[0]},${CONFIG.FG_COLOR[1]},${CONFIG.FG_COLOR[2]},0.5)`;
+    let fadeOverlayString = `rgba(${CONFIG.BG_COLOR[0]},${CONFIG.BG_COLOR[1]},${CONFIG.BG_COLOR[2]},0.04)`;
+    let fadeOverlayHardString = `rgba(${CONFIG.BG_COLOR[0]},${CONFIG.BG_COLOR[1]},${CONFIG.BG_COLOR[2]},0.06)`;
 
     // State
     let cracks = [], sparks = [], cgrid = new Array(canvasWidth * canvasHeight).fill(10001);
@@ -113,13 +120,11 @@ window.onload = function() {
         totalPixels = canvasWidth * canvasHeight;
         
         // Restore rendering quality after resize
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        glowCtx.imageSmoothingEnabled = true;
-        glowCtx.imageSmoothingQuality = 'high';
+        ctx.imageSmoothingEnabled = false;
+        glowCtx.imageSmoothingEnabled = false;
         
         // Fill new area with background color
-        ctx.fillStyle = `rgb(${CONFIG.BG_COLOR[0]},${CONFIG.BG_COLOR[1]},${CONFIG.BG_COLOR[2]})`;
+        ctx.fillStyle = bgColorString;
         ctx.fillRect(0, 0, canvasWidth, canvasHeight);
         
         // Restore old content
@@ -187,13 +192,12 @@ window.onload = function() {
 
     function applyFadeOverlay() {
         const fadeProgress = getFadeProgress();
-        const alpha = hardFading ? 0.06 : 0.04;
-        ctx.fillStyle = `rgba(${CONFIG.BG_COLOR[0]},${CONFIG.BG_COLOR[1]},${CONFIG.BG_COLOR[2]},${alpha})`;
+        ctx.fillStyle = hardFading ? fadeOverlayHardString : fadeOverlayString;
         ctx.fillRect(0, 0, canvasWidth, canvasHeight);
         
         if (fadeProgress >= 1) {
             if (hardFading) {
-                ctx.fillStyle = `rgb(${CONFIG.BG_COLOR[0]},${CONFIG.BG_COLOR[1]},${CONFIG.BG_COLOR[2]})`;
+                ctx.fillStyle = bgColorString;
                 ctx.fillRect(0, 0, canvasWidth, canvasHeight);
                 resetCounter = 0; reset(); startFadeIn();
             } else {
@@ -341,6 +345,13 @@ window.onload = function() {
         if (fadingOut) applyFadeOverlay();
         
         if (!fadingOut) {
+            // Batch crack rendering - set context state once
+            const fadeMultiplier = fadingIn ? 0.5 : 1;
+            ctx.strokeStyle = fadingIn ? fgColorFadedString : fgColorString;
+            ctx.lineWidth = CONFIG.LINE_WIDTH;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
             // Remove dead cracks while processing
             for (let i = cracks.length - 1; i >= 0; i--) {
                 cracks[i].move(ctx, sparks, fadingIn, fadingOut, makeCrack);
@@ -369,7 +380,7 @@ window.onload = function() {
         if (!fadingOut && !fadingIn && (cracks.length === 0 || coverage >= coverageThreshold)) {
             if (CONFIG.FADE_OUT_SECONDS > 0) startFadeOut();
             else {
-                ctx.fillStyle = `rgb(${CONFIG.BG_COLOR[0]},${CONFIG.BG_COLOR[1]},${CONFIG.BG_COLOR[2]})`;
+                ctx.fillStyle = bgColorString;
                 ctx.fillRect(0, 0, canvasWidth, canvasHeight);
                 reset();
             }
@@ -394,7 +405,7 @@ window.onload = function() {
         requestAnimationFrame(animate);
     }
 
-    ctx.fillStyle = `rgb(${CONFIG.BG_COLOR[0]},${CONFIG.BG_COLOR[1]},${CONFIG.BG_COLOR[2]})`;
+    ctx.fillStyle = bgColorString;
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     reset();
     animate();
