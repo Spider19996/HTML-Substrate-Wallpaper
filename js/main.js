@@ -46,8 +46,10 @@ window.onload = function() {
     canvas.width = canvasWidth; canvas.height = canvasHeight;
     glowCanvas.width = canvasWidth; glowCanvas.height = canvasHeight;
     
-    ctx.imageSmoothingEnabled = false; // Disable for performance
-    glowCtx.imageSmoothingEnabled = false;
+    // Set anti-aliasing based on config (default true for better quality)
+    const antiAliasing = CONFIG.ANTI_ALIASING !== undefined ? CONFIG.ANTI_ALIASING : true;
+    ctx.imageSmoothingEnabled = antiAliasing;
+    glowCtx.imageSmoothingEnabled = antiAliasing;
 
     document.body.style.background = `rgb(${CONFIG.BG_COLOR[0]},${CONFIG.BG_COLOR[1]},${CONFIG.BG_COLOR[2]})`;
 
@@ -144,8 +146,8 @@ window.onload = function() {
         totalPixels = canvasWidth * canvasHeight;
         
         // Restore rendering quality after resize
-        ctx.imageSmoothingEnabled = false;
-        glowCtx.imageSmoothingEnabled = false;
+        ctx.imageSmoothingEnabled = antiAliasing;
+        glowCtx.imageSmoothingEnabled = antiAliasing;
         
         // Fill new area with background color
         ctx.fillStyle = bgColorString;
