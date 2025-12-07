@@ -262,7 +262,9 @@ window.onload = function() {
     function spawnCursorSparks() {
         if (!CONFIG.CURSOR_SPARKS_ENABLED || !mouseInCanvas) return;
         for (let i = 0; i < CONFIG.CURSOR_SPARK_RATE; i++) {
-            sparks.push(SparkPool.get(mouseX, mouseY, CONFIG.FG_COLOR));
+            // Use random color from COLORS palette instead of FG_COLOR
+            const randomColor = CONFIG.COLORS[Math.floor(Math.random() * CONFIG.COLORS.length)];
+            sparks.push(SparkPool.get(mouseX, mouseY, randomColor));
         }
     }
 
