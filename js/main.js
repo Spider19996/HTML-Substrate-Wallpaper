@@ -4,9 +4,17 @@ const PI2 = Math.PI * 2;
 
 window.onload = function() {
     const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
+    const ctx = canvas.getContext('2d', { 
+        alpha: false, 
+        desynchronized: true,
+        willReadFrequently: false  // Important for performance
+    });
     const glowCanvas = document.getElementById('glowCanvas');
-    const glowCtx = glowCanvas.getContext('2d', { alpha: true, desynchronized: true });
+    const glowCtx = glowCanvas.getContext('2d', { 
+        alpha: true, 
+        desynchronized: true,
+        willReadFrequently: false
+    });
     
     // Validate and sanitize CONFIG or use defaults
     let validatedConfig;
@@ -61,15 +69,23 @@ window.onload = function() {
     let warningText = configErrors.length > 0 ? configErrors : null;
     let warningStartTime = configErrors.length > 0 ? Date.now() : null;
     const warningDuration = 8000; // 8 seconds
+    let rafId = null; // Track RAF ID for cancellation
     
     // Coverage tracking
     let coveredPixels = 0;
     let totalPixels = canvasWidth * canvasHeight;
     
-    // Tab visibility detection
+    // Tab visibility detection with RAF cancellation
     let isTabVisible = true;
     document.addEventListener('visibilitychange', () => {
+        const wasVisible = isTabVisible;
         isTabVisible = !document.hidden;
+        
+        // Resume animation when tab becomes visible again
+        if (!wasVisible && isTabVisible && rafId === null) {
+            lastFrameTime = Date.now(); // Reset frame timing
+            animate();
+        }
     });
     
     // Coverage callback function
@@ -241,6 +257,10 @@ window.onload = function() {
         mouseInCanvas = true;
     });
 
+    canvas.addEventListener('mouseleave', () => {
+        mouseInCanvas = false;
+    });
+
     function spawnCursorSparks() {
         if (!CONFIG.CURSOR_SPARKS_ENABLED || !mouseInCanvas) return;
         for (let i = 0; i < CONFIG.CURSOR_SPARK_RATE; i++) {
@@ -338,19 +358,22 @@ window.onload = function() {
     }
 
     function animate() {
-        // Skip rendering when tab not visible
+        // Cancel RAF and exit when tab not visible
         if (!isTabVisible) {
-            requestAnimationFrame(animate);
+            if (rafId !== null) {
+                cancelAnimationFrame(rafId);
+                rafId = null;
+            }
             return;
         }
         
-        // FPS limiting
+        // FPS limiting with better precision
         const currentTime = Date.now();
         if (CONFIG.TARGET_FPS > 0) {
             const targetFrameTime = 1000 / CONFIG.TARGET_FPS;
             const elapsed = currentTime - lastFrameTime;
-            if (elapsed < targetFrameTime) {
-                requestAnimationFrame(animate);
+            if (elapsed < targetFrameTime - 1) { // -1ms tolerance
+                rafId = requestAnimationFrame(animate);
                 return;
             }
             lastFrameTime = currentTime - (elapsed % targetFrameTime);
@@ -428,7 +451,7 @@ window.onload = function() {
             glowCtx.fillText(`FPS: ${fps}`, x, y);
         }
         
-        requestAnimationFrame(animate);
+        rafId = requestAnimationFrame(animate);
     }
 
     ctx.fillStyle = bgColorString;
