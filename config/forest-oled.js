@@ -50,7 +50,6 @@ const CONFIG = {
     TARGET_FPS:              30,       // Maximum framerate limit (0 = unlimited, lower = less CPU/GPU usage)
     
     // COLORS - FOREST THEME OLED (Bright and dark greens on black for power savings)
-    FG_COLOR:                [144, 238, 144], // Light green for main lines
     BG_COLOR:                [0, 0, 0],       // Pure black background for OLED
     COLORS: [                                 // Forest color palette with dark and bright greens for OLED
         [50, 205, 50],   // Lime Green

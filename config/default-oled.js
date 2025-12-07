@@ -50,9 +50,8 @@ const CONFIG = {
     TARGET_FPS:              30,       // Maximum framerate limit (0 = unlimited, lower = less CPU/GPU usage)
     
     // COLORS (OLED optimized - bright colors on black background for power savings)
-    FG_COLOR:                [255, 255, 255], // Main line color [R, G, B] (0-255 each)
     BG_COLOR:                [0, 0, 0],       // Background color [R, G, B] (0-255 each)
-    COLORS: [                              // Sand and spark color palette (randomly selected)
+    COLORS: [                                 // Line, sand and spark color palette (randomly selected)
         [0, 255, 255],   // Cyan
         [255, 0, 255],   // Magenta
         [255, 255, 0],   // Yellow

@@ -50,7 +50,6 @@ const CONFIG = {
     TARGET_FPS:              60,       // Maximum framerate limit (0 = unlimited, lower = less CPU/GPU usage)
     
     // COLORS - FOREST THEME (Earth tones and natural greens)
-    FG_COLOR:                [45, 65, 35],    // Dark forest green for main lines
     BG_COLOR:                [245, 240, 230], // Warm off-white/cream background
     COLORS: [                                 // Forest color palette with darker greens
         [34, 80, 34],    // Deep Forest Green

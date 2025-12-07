@@ -50,9 +50,8 @@ const CONFIG = {
     TARGET_FPS:              60,       // Maximum framerate limit (0 = unlimited, lower = less CPU/GPU usage)
     
     // COLORS
-    FG_COLOR:                [0, 0, 0],     // Main line color [R, G, B] (0-255 each)
     BG_COLOR:                [255, 255, 255], // Background color [R, G, B] (0-255 each)
-    COLORS: [                              // Sand and spark color palette (randomly selected)
+    COLORS: [                                 // Line, sand and spark color palette (randomly selected)
         [255, 50, 50],   // Red
         [50, 255, 50],   // Green
         [50, 50, 255],   // Blue
