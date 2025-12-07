@@ -98,26 +98,31 @@ Crack.prototype.drawSandRegion = function(ctx, direction) {
     this.sandG = Math.max(0, Math.min(1, this.sandG));
     const w = this.sandG / (CONFIG.GRAINS - 1);
     
-    // Batch all sand grains into single path
-    const sandPath = new Path2D();
+    // Optimized: Group grains by similar alpha and draw in batches
+    const alphaGroups = {};
     for (let i = 0; i < CONFIG.GRAINS; i++) {
+        const alpha = Math.floor((0.1 - i / (CONFIG.GRAINS * 10)) * 100) / 100;
+        if (!alphaGroups[alpha]) alphaGroups[alpha] = [];
+        
         const sinVal = Math.sin(this.sandP + Math.sin(i * w));
         const drawX = this.x + (rx - this.x) * sinVal;
         const drawY = this.y + (ry - this.y) * sinVal;
-        sandPath.arc(drawX, drawY, 0.5, 0, PI2);
+        alphaGroups[alpha].push({x: drawX, y: drawY});
     }
     
-    // Draw all grains at once with gradient alpha
-    for (let i = 0; i < CONFIG.GRAINS; i++) {
-        const alpha = (0.1 - i / (CONFIG.GRAINS * 10));
+    // Draw each alpha group in one batch
+    Object.keys(alphaGroups).forEach(alpha => {
+        const grains = alphaGroups[alpha];
+        if (grains.length === 0) return;
+        
         ctx.fillStyle = `rgba(${this.sandColor[0]},${this.sandColor[1]},${this.sandColor[2]},${alpha})`;
-        const sinVal = Math.sin(this.sandP + Math.sin(i * w));
-        const drawX = this.x + (rx - this.x) * sinVal;
-        const drawY = this.y + (ry - this.y) * sinVal;
         ctx.beginPath();
-        ctx.arc(drawX, drawY, 0.5, 0, PI2);
+        grains.forEach(grain => {
+            ctx.moveTo(grain.x + 0.5, grain.y);
+            ctx.arc(grain.x, grain.y, 0.5, 0, PI2);
+        });
         ctx.fill();
-    }
+    });
 };
 
 Crack.prototype.regionColor = function(ctx) {
