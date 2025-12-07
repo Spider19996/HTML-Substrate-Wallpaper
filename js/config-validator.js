@@ -1,7 +1,7 @@
 // Config validator with safe defaults
 const ConfigValidator = {
     defaults: {
-        STEP: 0.7,
+        STEP: 1.5,
         CRACKS_PER_100K_PIXELS: 1,
         MIN_INITIAL_CRACKS: 2,
         MAX_INITIAL_CRACKS: 20,
@@ -9,9 +9,10 @@ const ConfigValidator = {
         CIRCLE_PERCENT: 40,
         GRAINS: 64,
         SAND_MODE: 'both',
+        SAND_ALPHA: 0.1,
         LINE_WIDTH: 1,
         RESET_AFTER_SECONDS: 0,
-        COVERAGE_RESET_PERCENT: 50,
+        COVERAGE_RESET_PERCENT: 10,
         FADE_OUT_SECONDS: 3,
         HARD_RESET_EVERY: 3,
         HARD_FADE_SECONDS: 2,
@@ -35,7 +36,6 @@ const ConfigValidator = {
         FPS_COUNTER_SIZE: 14,
         FPS_COUNTER_COLOR: [0, 0, 0],
         TARGET_FPS: 60,
-        FG_COLOR: [0, 0, 0],
         BG_COLOR: [255, 255, 255],
         COLORS: [
             [255, 50, 50],
@@ -124,6 +124,17 @@ const ConfigValidator = {
                         validated[key] = defaultValue;
                         if (value !== undefined) {
                             errors.push(`${key}: invalid value ${formatValue(value)} (must be 'both', 'one', or 'none'), using default '${defaultValue}'`);
+                        }
+                    }
+                    break;
+
+                case 'SAND_ALPHA':
+                    if (isInRange(value, 0, 1)) {
+                        validated[key] = value;
+                    } else {
+                        validated[key] = defaultValue;
+                        if (value !== undefined) {
+                            errors.push(`${key}: invalid value ${formatValue(value)} (must be 0.0-1.0), using default ${defaultValue}`);
                         }
                     }
                     break;
@@ -262,7 +273,6 @@ const ConfigValidator = {
                     }
                     break;
 
-                case 'FG_COLOR':
                 case 'BG_COLOR':
                 case 'FPS_COUNTER_COLOR':
                     if (isColor(value)) {
