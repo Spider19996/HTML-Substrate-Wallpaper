@@ -49,13 +49,16 @@ const CONFIG = {
     FPS_COUNTER_COLOR:       [100, 200, 100], // RGB color of FPS counter text [R, G, B] (0-255 each)
     TARGET_FPS:              30,       // Maximum framerate limit (0 = unlimited, lower = less CPU/GPU usage)
     
-    // COLORS - FOREST THEME OLED (Bright greens on black for power savings)
+    // COLORS - FOREST THEME OLED (Bright and dark greens on black for power savings)
     FG_COLOR:                [144, 238, 144], // Light green for main lines
     BG_COLOR:                [0, 0, 0],       // Pure black background for OLED
-    COLORS: [                                 // Vibrant forest color palette for OLED
+    COLORS: [                                 // Forest color palette with dark and bright greens for OLED
         [50, 205, 50],   // Lime Green
+        [34, 139, 34],   // Forest Green (darker)
         [124, 252, 0],   // Lawn Green
+        [60, 150, 60],   // Medium Forest Green (darker)
         [173, 255, 47],  // Green Yellow
+        [85, 170, 85],   // Dark Sea Green (darker)
         [154, 205, 50],  // Yellow Green
         [255, 215, 0],   // Gold (sunlight)
         [218, 165, 32]   // Goldenrod (autumn leaves)
