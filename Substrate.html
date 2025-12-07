@@ -5,7 +5,14 @@
 <title>Substrate</title>
 <style>
 body { margin: 0; padding: 0; overflow: hidden; background: #fff; }
-#canvas, #glowCanvas { display: block; position: absolute; top: 0; left: 0; }
+#canvas, #glowCanvas { 
+    display: block; 
+    position: absolute; 
+    top: 0; 
+    left: 0;
+    will-change: contents;
+    transform: translateZ(0); /* Force GPU layer */
+}
 #glowCanvas { pointer-events: none; }
 </style>
 </head>
