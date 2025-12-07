@@ -99,9 +99,15 @@ Crack.prototype.drawSandRegion = function(ctx, direction) {
     const w = this.sandG / (CONFIG.GRAINS - 1);
     
     // Optimized: Group grains by similar alpha and draw in batches
+    // Use SAND_ALPHA config parameter for adjustable intensity
+    const sandAlpha = CONFIG.SAND_ALPHA || 0.1; // Default 0.1 for backwards compatibility
+    const alphaDivisor = CONFIG.GRAINS * (0.1 / sandAlpha); // Scale divisor based on desired alpha
+    
     const alphaGroups = {};
     for (let i = 0; i < CONFIG.GRAINS; i++) {
-        const alpha = Math.floor((0.1 - i / (CONFIG.GRAINS * 10)) * 100) / 100;
+        const alpha = Math.floor((sandAlpha - i / alphaDivisor) * 100) / 100;
+        if (alpha <= 0) continue; // Skip invisible grains
+        
         if (!alphaGroups[alpha]) alphaGroups[alpha] = [];
         
         const sinVal = Math.sin(this.sandP + Math.sin(i * w));
