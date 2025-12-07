@@ -68,8 +68,8 @@ Crack.prototype.startCrack = function() {
     if (this.manualStart) {
         this.t = a;
     } else {
-        this.x = px + 0.61 * Math.cos(a * Math.PI / 180);
-        this.y = py + 0.61 * Math.sin(a * Math.PI / 180);
+        this.x = px + 0.61 * Math.cos(a * DEG_TO_RAD);
+        this.y = py + 0.61 * Math.sin(a * DEG_TO_RAD);
         this.t = a;
     }
     this.lastX = this.x;
@@ -79,10 +79,13 @@ Crack.prototype.startCrack = function() {
 Crack.prototype.drawSandRegion = function(ctx, direction) {
     let rx = this.x, ry = this.y, openspace = true;
     const dirMult = direction;
+    const tRad = this.t * DEG_TO_RAD;
+    const sinT = Math.sin(tRad);
+    const cosT = Math.cos(tRad);
     
     while (openspace) {
-        rx += dirMult * 0.81 * Math.sin(this.t * Math.PI / 180);
-        ry -= dirMult * 0.81 * Math.cos(this.t * Math.PI / 180);
+        rx += dirMult * 0.81 * sinT;
+        ry -= dirMult * 0.81 * cosT;
         const cx = Math.floor(rx), cy = Math.floor(ry);
         if (cx < 0 || cx >= this.canvasWidth || cy < 0 || cy >= this.canvasHeight || 
             getCGrid(cx, cy, this.cgrid, this.canvasWidth, this.canvasHeight) <= 10000) {
@@ -94,13 +97,24 @@ Crack.prototype.drawSandRegion = function(ctx, direction) {
     this.sandG = Math.max(0, Math.min(1, this.sandG));
     const w = this.sandG / (CONFIG.GRAINS - 1);
     
+    // Batch all sand grains into single path
+    const sandPath = new Path2D();
     for (let i = 0; i < CONFIG.GRAINS; i++) {
-        const drawX = this.x + (rx - this.x) * Math.sin(this.sandP + Math.sin(i * w));
-        const drawY = this.y + (ry - this.y) * Math.sin(this.sandP + Math.sin(i * w));
+        const sinVal = Math.sin(this.sandP + Math.sin(i * w));
+        const drawX = this.x + (rx - this.x) * sinVal;
+        const drawY = this.y + (ry - this.y) * sinVal;
+        sandPath.arc(drawX, drawY, 0.5, 0, PI2);
+    }
+    
+    // Draw all grains at once with gradient alpha
+    for (let i = 0; i < CONFIG.GRAINS; i++) {
         const alpha = (0.1 - i / (CONFIG.GRAINS * 10));
         ctx.fillStyle = `rgba(${this.sandColor[0]},${this.sandColor[1]},${this.sandColor[2]},${alpha})`;
+        const sinVal = Math.sin(this.sandP + Math.sin(i * w));
+        const drawX = this.x + (rx - this.x) * sinVal;
+        const drawY = this.y + (ry - this.y) * sinVal;
         ctx.beginPath();
-        ctx.arc(drawX, drawY, 0.5, 0, Math.PI * 2);
+        ctx.arc(drawX, drawY, 0.5, 0, PI2);
         ctx.fill();
     }
 };
@@ -137,18 +151,26 @@ Crack.prototype.move = function(ctx, sparks, fadingIn, fadingOut, makeCrackFunc,
     this.lastY = this.y;
     this.applyDrift();
     
+    const tRad = this.t * DEG_TO_RAD;
+    
     if (!this.curved) {
-        this.x += CONFIG.STEP * Math.cos(this.t * Math.PI / 180);
-        this.y += CONFIG.STEP * Math.sin(this.t * Math.PI / 180);
+        this.x += CONFIG.STEP * Math.cos(tRad);
+        this.y += CONFIG.STEP * Math.sin(tRad);
     } else {
-        this.x += this.ys * Math.cos(this.t * Math.PI / 180) + this.xs * Math.cos(this.t * Math.PI / 180 - Math.PI / 2);
-        this.y += this.ys * Math.sin(this.t * Math.PI / 180) + this.xs * Math.sin(this.t * Math.PI / 180 - Math.PI / 2);
+        const cosT = Math.cos(tRad);
+        const sinT = Math.sin(tRad);
+        const cosT2 = Math.cos(tRad - Math.PI / 2);
+        const sinT2 = Math.sin(tRad - Math.PI / 2);
+        this.x += this.ys * cosT + this.xs * cosT2;
+        this.y += this.ys * sinT + this.xs * sinT2;
         this.t += this.tInc;
         this.degreesDrawn += Math.abs(this.tInc);
     }
     
-    const cx = Math.floor(this.x + Math.random() * 0.33 - 0.165);
-    const cy = Math.floor(this.y + Math.random() * 0.33 - 0.165);
+    // Cache random for reuse
+    const rand = Math.random();
+    const cx = Math.floor(this.x + rand * 0.33 - 0.165);
+    const cy = Math.floor(this.y + rand * 0.33 - 0.165);
     
     if (cx >= 0 && cx < this.canvasWidth && cy >= 0 && cy < this.canvasHeight) {
         this.regionColor(ctx);

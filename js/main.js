@@ -1,3 +1,7 @@
+// Math constants cache
+const DEG_TO_RAD = Math.PI / 180;
+const PI2 = Math.PI * 2;
+
 window.onload = function() {
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
@@ -61,6 +65,12 @@ window.onload = function() {
     // Coverage tracking
     let coveredPixels = 0;
     let totalPixels = canvasWidth * canvasHeight;
+    
+    // Tab visibility detection
+    let isTabVisible = true;
+    document.addEventListener('visibilitychange', () => {
+        isTabVisible = !document.hidden;
+    });
     
     // Coverage callback function
     const incrementCoverage = () => { coveredPixels++; };
@@ -153,20 +163,22 @@ window.onload = function() {
             cracks[i].coverageCallback = incrementCoverage;
         }
         
-        // Remove cracks that are now out of bounds
+        // Remove cracks that are now out of bounds (swap-and-pop)
         for (let i = cracks.length - 1; i >= 0; i--) {
             if (cracks[i].x < 0 || cracks[i].x >= canvasWidth || 
                 cracks[i].y < 0 || cracks[i].y >= canvasHeight) {
-                cracks.splice(i, 1);
+                cracks[i] = cracks[cracks.length - 1];
+                cracks.pop();
             }
         }
         
-        // Remove sparks that are now out of bounds
+        // Remove sparks that are now out of bounds (swap-and-pop)
         for (let i = sparks.length - 1; i >= 0; i--) {
             if (sparks[i].x < 0 || sparks[i].x >= canvasWidth || 
                 sparks[i].y < 0 || sparks[i].y >= canvasHeight) {
                 SparkPool.release(sparks[i]);
-                sparks.splice(i, 1);
+                sparks[i] = sparks[sparks.length - 1];
+                sparks.pop();
             }
         }
     }
@@ -326,6 +338,12 @@ window.onload = function() {
     }
 
     function animate() {
+        // Skip rendering when tab not visible
+        if (!isTabVisible) {
+            requestAnimationFrame(animate);
+            return;
+        }
+        
         // FPS limiting
         const currentTime = Date.now();
         if (CONFIG.TARGET_FPS > 0) {
@@ -349,10 +367,13 @@ window.onload = function() {
             const path = new Path2D();
             const fadeMultiplier = fadingIn ? 0.5 : 1;
             
-            // Remove dead cracks while processing
+            // Remove dead cracks while processing (swap-and-pop for performance)
             for (let i = cracks.length - 1; i >= 0; i--) {
                 cracks[i].move(ctx, sparks, fadingIn, fadingOut, makeCrack, path);
-                if (!cracks[i].alive) cracks.splice(i, 1);
+                if (!cracks[i].alive) {
+                    cracks[i] = cracks[cracks.length - 1];
+                    cracks.pop();
+                }
             }
             
             // Draw all crack lines in one stroke call
@@ -365,12 +386,13 @@ window.onload = function() {
         
         spawnCursorSparks();
         
-        // Combined spark update, draw and cleanup in one loop with object pooling
+        // Combined spark update, draw and cleanup with swap-and-pop
         for (let i = sparks.length - 1; i >= 0; i--) {
             sparks[i].update();
             if (sparks[i].isDead()) {
                 SparkPool.release(sparks[i]);
-                sparks.splice(i, 1);
+                sparks[i] = sparks[sparks.length - 1];
+                sparks.pop();
             } else {
                 sparks[i].draw(glowCtx, fadingIn);
             }

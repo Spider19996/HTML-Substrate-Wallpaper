@@ -1,7 +1,7 @@
 // Spark object pool for performance
 const SparkPool = {
     pool: [],
-    maxSize: 1000,
+    maxSize: 2000,  // Increased from 1000
     
     get: function(x, y, color) {
         let spark;
@@ -26,7 +26,7 @@ function Spark(x, y, color) {
     this.y = y; 
     this.color = color;
     this.colorKey = `${color[0]},${color[1]},${color[2]}`;
-    const angle = Math.random() * Math.PI * 2;
+    const angle = Math.random() * PI2;
     const speed = CONFIG.SPARK_SPEED_MIN + Math.random() * (CONFIG.SPARK_SPEED_MAX - CONFIG.SPARK_SPEED_MIN);
     this.vx = Math.cos(angle) * speed;
     this.vy = Math.sin(angle) * speed;
@@ -40,7 +40,7 @@ Spark.prototype.reset = function(x, y, color) {
     this.y = y;
     this.color = color;
     this.colorKey = `${color[0]},${color[1]},${color[2]}`;
-    const angle = Math.random() * Math.PI * 2;
+    const angle = Math.random() * PI2;
     const speed = CONFIG.SPARK_SPEED_MIN + Math.random() * (CONFIG.SPARK_SPEED_MAX - CONFIG.SPARK_SPEED_MIN);
     this.vx = Math.cos(angle) * speed;
     this.vy = Math.sin(angle) * speed;
