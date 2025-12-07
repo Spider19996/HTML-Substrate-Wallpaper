@@ -53,8 +53,6 @@ window.onload = function() {
 
     // Pre-cache color strings
     let bgColorString = `rgb(${CONFIG.BG_COLOR[0]},${CONFIG.BG_COLOR[1]},${CONFIG.BG_COLOR[2]})`;
-    let fgColorString = `rgba(${CONFIG.FG_COLOR[0]},${CONFIG.FG_COLOR[1]},${CONFIG.FG_COLOR[2]},1)`;
-    let fgColorFadedString = `rgba(${CONFIG.FG_COLOR[0]},${CONFIG.FG_COLOR[1]},${CONFIG.FG_COLOR[2]},0.5)`;
     let fadeOverlayString = `rgba(${CONFIG.BG_COLOR[0]},${CONFIG.BG_COLOR[1]},${CONFIG.BG_COLOR[2]},0.04)`;
     let fadeOverlayHardString = `rgba(${CONFIG.BG_COLOR[0]},${CONFIG.BG_COLOR[1]},${CONFIG.BG_COLOR[2]},0.06)`;
 
@@ -386,25 +384,27 @@ window.onload = function() {
         if (fadingOut) applyFadeOverlay();
         
         if (!fadingOut) {
-            // Batch all crack lines into single Path2D for performance
-            const path = new Path2D();
-            const fadeMultiplier = fadingIn ? 0.5 : 1;
+            // Draw each crack with its individual color
+            ctx.lineWidth = CONFIG.LINE_WIDTH;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
             
-            // Remove dead cracks while processing (swap-and-pop for performance)
+            // Process and draw cracks individually
             for (let i = cracks.length - 1; i >= 0; i--) {
+                const path = new Path2D();
                 cracks[i].move(ctx, sparks, fadingIn, fadingOut, makeCrack, path);
+                
+                // Draw this crack's line with its color
+                const alpha = fadingIn ? 0.5 : 1;
+                ctx.strokeStyle = `rgba(${cracks[i].lineColor[0]},${cracks[i].lineColor[1]},${cracks[i].lineColor[2]},${alpha})`;
+                ctx.stroke(path);
+                
+                // Remove dead cracks (swap-and-pop)
                 if (!cracks[i].alive) {
                     cracks[i] = cracks[cracks.length - 1];
                     cracks.pop();
                 }
             }
-            
-            // Draw all crack lines in one stroke call
-            ctx.strokeStyle = fadingIn ? fgColorFadedString : fgColorString;
-            ctx.lineWidth = CONFIG.LINE_WIDTH;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.stroke(path);
         }
         
         spawnCursorSparks();
