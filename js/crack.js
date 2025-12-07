@@ -39,7 +39,20 @@ Crack.prototype.startCrack = function() {
     }
     
     const oldA = getCGrid(px, py, this.cgrid, this.canvasWidth, this.canvasHeight);
-    let a = this.manualStart && oldA > 10000 ? Math.random() * 360 : getBranchAngle(oldA);
+    let a;
+    
+    // If manual start and empty pixel, use random direction
+    if (this.manualStart && oldA > 10000) {
+        a = Math.random() * 360;
+    }
+    // If grid is empty (initial crack or no intersection found), use random direction
+    else if (oldA > 10000) {
+        a = Math.random() * 360;
+    }
+    // Otherwise branch from existing crack
+    else {
+        a = getBranchAngle(oldA);
+    }
     
     if (Math.random() * 100 < CONFIG.CIRCLE_PERCENT) {
         this.curved = true;
