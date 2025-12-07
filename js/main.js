@@ -367,6 +367,15 @@ window.onload = function() {
             return;
         }
         
+        // Stop RAF when idle (no activity and not fading)
+        if (cracks.length === 0 && sparks.length === 0 && !fadingOut && !fadingIn) {
+            if (rafId !== null) {
+                cancelAnimationFrame(rafId);
+                rafId = null;
+            }
+            return;
+        }
+        
         // FPS limiting with better precision
         const currentTime = Date.now();
         if (CONFIG.TARGET_FPS > 0) {
@@ -386,20 +395,27 @@ window.onload = function() {
         if (fadingOut) applyFadeOverlay();
         
         if (!fadingOut) {
-            // Draw each crack with its individual color
+            // Optimize: Group cracks by color to reduce strokeStyle changes
+            const colorGroups = {};
+            
             ctx.lineWidth = CONFIG.LINE_WIDTH;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
             
-            // Process and draw cracks individually
+            // Process all cracks and group by color
             for (let i = cracks.length - 1; i >= 0; i--) {
                 const path = new Path2D();
                 cracks[i].move(ctx, sparks, fadingIn, fadingOut, makeCrack, path);
                 
-                // Draw this crack's line with its color
-                const alpha = fadingIn ? 0.5 : 1;
-                ctx.strokeStyle = `rgba(${cracks[i].lineColor[0]},${cracks[i].lineColor[1]},${cracks[i].lineColor[2]},${alpha})`;
-                ctx.stroke(path);
+                // Group by color key
+                const colorKey = `${cracks[i].lineColor[0]},${cracks[i].lineColor[1]},${cracks[i].lineColor[2]}`;
+                if (!colorGroups[colorKey]) {
+                    colorGroups[colorKey] = {
+                        color: cracks[i].lineColor,
+                        paths: []
+                    };
+                }
+                colorGroups[colorKey].paths.push(path);
                 
                 // Remove dead cracks (swap-and-pop)
                 if (!cracks[i].alive) {
@@ -407,6 +423,13 @@ window.onload = function() {
                     cracks.pop();
                 }
             }
+            
+            // Draw all paths grouped by color
+            const alpha = fadingIn ? 0.5 : 1;
+            Object.values(colorGroups).forEach(group => {
+                ctx.strokeStyle = `rgba(${group.color[0]},${group.color[1]},${group.color[2]},${alpha})`;
+                group.paths.forEach(path => ctx.stroke(path));
+            });
         }
         
         spawnCursorSparks();
