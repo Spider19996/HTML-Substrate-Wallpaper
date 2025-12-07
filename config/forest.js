@@ -12,6 +12,7 @@ const CONFIG = {
     SAND_MODE:               'both',   // Sand drawing mode: 'both' (both sides), 'one' (one side), 'none' (disabled)
     SAND_ALPHA:              0.15,     // Maximum opacity of sand grains (0.0-1.0, higher = more visible/vibrant colors)
     LINE_WIDTH:              1,        // Width of crack lines in pixels
+    ANTI_ALIASING:           true,     // Enable smooth anti-aliased rendering (true = better quality, false = better performance)
     
     // ANIMATION TIMING
     RESET_AFTER_SECONDS:     0,        // Disabled - now uses coverage-based reset
