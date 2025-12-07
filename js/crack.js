@@ -11,6 +11,7 @@ function Crack(startX, startY, canvasWidth, canvasHeight, cgrid, coverageCallbac
     this.sandG = Math.random() * 0.2 - 0.01;
     this.sandP = 0;
     this.sandColor = CONFIG.COLORS[Math.floor(Math.random() * CONFIG.COLORS.length)];
+    this.lineColor = this.sandColor; // Lines now use same color as sand/sparks
     this.alive = true;
     this.lastX = this.x;
     this.lastY = this.y;
