@@ -20,22 +20,53 @@ body { margin: 0; padding: 0; overflow: hidden; background: #fff; }
 <CANVAS id="canvas"></CANVAS>
 <CANVAS id="glowCanvas"></CANVAS>
 <script>
+// Load config first, then load other scripts
 const urlParams = new URLSearchParams(window.location.search);
 let configFile = urlParams.get('config') || 'config/default.js';
 if (!configFile.startsWith('config/')) configFile = 'config/' + configFile;
-const script = document.createElement('script');
-script.src = configFile;
-script.onload = () => console.log('Config loaded:', configFile);
-script.onerror = () => {
+
+const configScript = document.createElement('script');
+configScript.src = configFile;
+configScript.onload = () => {
+    console.log('Config loaded:', configFile);
+    // Load remaining scripts after config is loaded
+    loadScript('js/config-validator.js', () => {
+        loadScript('js/utils.js', () => {
+            loadScript('js/spark.js', () => {
+                loadScript('js/crack.js', () => {
+                    loadScript('js/main.js', () => {
+                        console.log('All scripts loaded');
+                    });
+                });
+            });
+        });
+    });
+};
+configScript.onerror = () => {
     console.error('Config failed to load:', configFile);
     console.warn('Continuing with default config');
+    // Still load other scripts even if config fails
+    loadScript('js/config-validator.js', () => {
+        loadScript('js/utils.js', () => {
+            loadScript('js/spark.js', () => {
+                loadScript('js/crack.js', () => {
+                    loadScript('js/main.js', () => {
+                        console.log('All scripts loaded with default config');
+                    });
+                });
+            });
+        });
+    });
 };
-document.head.appendChild(script);
+document.head.appendChild(configScript);
+
+function loadScript(src, callback) {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = callback;
+    script.onerror = () => console.error('Failed to load:', src);
+    document.head.appendChild(script);
+}
 </script>
-<script src="js/config-validator.js"></script>
-<script src="js/utils.js"></script>
-<script src="js/spark.js"></script>
-<script src="js/crack.js"></script>
-<script src="js/main.js"></script>
 </body>
 </html>
