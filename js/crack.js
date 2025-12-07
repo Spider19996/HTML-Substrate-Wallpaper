@@ -1,6 +1,6 @@
 let nextCrackId = 0;
 
-function Crack(startX, startY, canvasWidth, canvasHeight, cgrid) {
+function Crack(startX, startY, canvasWidth, canvasHeight, cgrid, coverageCallback) {
     this.id = nextCrackId++;
     this.manualStart = (startX !== null && startY !== null);
     this.x = startX !== null ? startX : Math.random() * canvasWidth;
@@ -17,6 +17,7 @@ function Crack(startX, startY, canvasWidth, canvasHeight, cgrid) {
     this.canvasWidth = canvasWidth;
     this.canvasHeight = canvasHeight;
     this.cgrid = cgrid;
+    this.coverageCallback = coverageCallback;
     this.startCrack();
 }
 
@@ -158,7 +159,7 @@ Crack.prototype.move = function(ctx, sparks, fadingIn, fadingOut, makeCrackFunc)
             }
         } else if (getCGrid(cx, cy, this.cgrid, this.canvasWidth, this.canvasHeight) > 10000 || 
                    Math.abs(getCGrid(cx, cy, this.cgrid, this.canvasWidth, this.canvasHeight) - this.t) < 5) {
-            setCGrid(cx, cy, this.t, this.cgrid, this.canvasWidth, this.canvasHeight);
+            setCGrid(cx, cy, this.t, this.cgrid, this.canvasWidth, this.canvasHeight, this.coverageCallback);
         } else if (Math.abs(getCGrid(cx, cy, this.cgrid, this.canvasWidth, this.canvasHeight)) > 2) {
             this.alive = false;
             if (!fadingOut) {

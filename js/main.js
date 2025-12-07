@@ -54,10 +54,13 @@ window.onload = function() {
     // Coverage tracking
     let coveredPixels = 0;
     let totalPixels = canvasWidth * canvasHeight;
+    
+    // Coverage callback function
+    const incrementCoverage = () => { coveredPixels++; };
 
     function makeCrack(x = null, y = null) {
         if (cracks.length < CONFIG.MAX_CRACKS) {
-            cracks.push(new Crack(x, y, canvasWidth, canvasHeight, cgrid));
+            cracks.push(new Crack(x, y, canvasWidth, canvasHeight, cgrid, incrementCoverage));
         }
     }
 
@@ -142,6 +145,7 @@ window.onload = function() {
             cracks[i].canvasWidth = canvasWidth;
             cracks[i].canvasHeight = canvasHeight;
             cracks[i].cgrid = cgrid;
+            cracks[i].coverageCallback = incrementCoverage;
         }
         
         // Remove cracks that are now out of bounds
@@ -313,13 +317,6 @@ window.onload = function() {
         glowCtx.restore();
     }
 
-    function updateCoverage(x, y) {
-        const idx = Math.floor(y) * canvasWidth + Math.floor(x);
-        if (idx >= 0 && idx < cgrid.length && cgrid[idx] === 10001) {
-            coveredPixels++;
-        }
-    }
-
     function getCoveragePercent() {
         return coveredPixels / totalPixels;
     }
@@ -346,12 +343,7 @@ window.onload = function() {
         if (!fadingOut) {
             // Remove dead cracks while processing
             for (let i = cracks.length - 1; i >= 0; i--) {
-                const oldCoverage = coveredPixels;
                 cracks[i].move(ctx, sparks, fadingIn, fadingOut, makeCrack);
-                // Track coverage increase from this crack's movement
-                if (cracks[i].alive) {
-                    updateCoverage(cracks[i].x, cracks[i].y);
-                }
                 if (!cracks[i].alive) cracks.splice(i, 1);
             }
         }
@@ -373,7 +365,8 @@ window.onload = function() {
         
         // Coverage-based reset
         const coverage = getCoveragePercent();
-        if (!fadingOut && !fadingIn && (cracks.length === 0 || coverage >= 0.80)) {
+        const coverageThreshold = CONFIG.COVERAGE_RESET_PERCENT / 100;
+        if (!fadingOut && !fadingIn && (cracks.length === 0 || coverage >= coverageThreshold)) {
             if (CONFIG.FADE_OUT_SECONDS > 0) startFadeOut();
             else {
                 ctx.fillStyle = `rgb(${CONFIG.BG_COLOR[0]},${CONFIG.BG_COLOR[1]},${CONFIG.BG_COLOR[2]})`;
