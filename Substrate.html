@@ -21,7 +21,7 @@ body { margin: 0; padding: 0; overflow: hidden; background: #fff; }
 <CANVAS id="glowCanvas"></CANVAS>
 <script>
 const urlParams = new URLSearchParams(window.location.search);
-let configFile = urlParams.get('config') || 'config/config.js';
+let configFile = urlParams.get('config') || 'config/default.js';
 if (!configFile.startsWith('config/')) configFile = 'config/' + configFile;
 const script = document.createElement('script');
 script.src = configFile;
