@@ -36,6 +36,7 @@ const ConfigValidator = {
         FPS_COUNTER_SIZE: 14,
         FPS_COUNTER_COLOR: [0, 0, 0],
         TARGET_FPS: 60,
+        ANTI_ALIASING: true,
         BG_COLOR: [255, 255, 255],
         COLORS: [
             [255, 50, 50],
@@ -181,6 +182,7 @@ const ConfigValidator = {
                 case 'CLICK_SPAWN_ENABLED':
                 case 'CURSOR_SPARKS_ENABLED':
                 case 'FPS_COUNTER_ENABLED':
+                case 'ANTI_ALIASING':
                     if (typeof value === 'boolean') {
                         validated[key] = value;
                     } else {
