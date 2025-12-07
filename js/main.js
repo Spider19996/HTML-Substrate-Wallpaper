@@ -46,8 +46,8 @@ window.onload = function() {
     let fadeOverlayString = `rgba(${CONFIG.BG_COLOR[0]},${CONFIG.BG_COLOR[1]},${CONFIG.BG_COLOR[2]},0.04)`;
     let fadeOverlayHardString = `rgba(${CONFIG.BG_COLOR[0]},${CONFIG.BG_COLOR[1]},${CONFIG.BG_COLOR[2]},0.06)`;
 
-    // State
-    let cracks = [], sparks = [], cgrid = new Array(canvasWidth * canvasHeight).fill(10001);
+    // State - Use Typed Array for cgrid (faster memory access)
+    let cracks = [], sparks = [], cgrid = new Float32Array(canvasWidth * canvasHeight).fill(10001);
     let startTime = Date.now(), fadingOut = false, fadeStartTime = 0, resetCounter = 0;
     let hardFading = false, fadingIn = false, fadeInStartTime = 0;
     let fps = 60, frameCount = 0, fpsUpdateTime = Date.now();
@@ -77,7 +77,7 @@ window.onload = function() {
             SparkPool.release(sparks[i]);
         }
         cracks = []; sparks = []; 
-        cgrid = new Array(canvasWidth * canvasHeight).fill(10001);
+        cgrid = new Float32Array(canvasWidth * canvasHeight).fill(10001);
         coveredPixels = 0;
         totalPixels = canvasWidth * canvasHeight;
         startTime = Date.now(); fadingOut = false; hardFading = false;
@@ -131,8 +131,8 @@ window.onload = function() {
         ctx.drawImage(oldCanvas, 0, 0);
         glowCtx.drawImage(oldGlowCanvas, 0, 0);
         
-        // Create new larger grid and copy old data
-        const newGrid = new Array(canvasWidth * canvasHeight).fill(10001);
+        // Create new larger grid and copy old data (Typed Array)
+        const newGrid = new Float32Array(canvasWidth * canvasHeight).fill(10001);
         let newCoveredPixels = 0;
         for (let y = 0; y < Math.min(oldHeight, canvasHeight); y++) {
             for (let x = 0; x < Math.min(oldWidth, canvasWidth); x++) {
@@ -345,18 +345,22 @@ window.onload = function() {
         if (fadingOut) applyFadeOverlay();
         
         if (!fadingOut) {
-            // Batch crack rendering - set context state once
+            // Batch all crack lines into single Path2D for performance
+            const path = new Path2D();
             const fadeMultiplier = fadingIn ? 0.5 : 1;
+            
+            // Remove dead cracks while processing
+            for (let i = cracks.length - 1; i >= 0; i--) {
+                cracks[i].move(ctx, sparks, fadingIn, fadingOut, makeCrack, path);
+                if (!cracks[i].alive) cracks.splice(i, 1);
+            }
+            
+            // Draw all crack lines in one stroke call
             ctx.strokeStyle = fadingIn ? fgColorFadedString : fgColorString;
             ctx.lineWidth = CONFIG.LINE_WIDTH;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
-            
-            // Remove dead cracks while processing
-            for (let i = cracks.length - 1; i >= 0; i--) {
-                cracks[i].move(ctx, sparks, fadingIn, fadingOut, makeCrack);
-                if (!cracks[i].alive) cracks.splice(i, 1);
-            }
+            ctx.stroke(path);
         }
         
         spawnCursorSparks();

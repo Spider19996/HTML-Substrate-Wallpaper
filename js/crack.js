@@ -130,7 +130,7 @@ Crack.prototype.applyDrift = function() {
     }
 };
 
-Crack.prototype.move = function(ctx, sparks, fadingIn, fadingOut, makeCrackFunc) {
+Crack.prototype.move = function(ctx, sparks, fadingIn, fadingOut, makeCrackFunc, path) {
     if (!this.alive) return;
     
     this.lastX = this.x;
@@ -153,11 +153,9 @@ Crack.prototype.move = function(ctx, sparks, fadingIn, fadingOut, makeCrackFunc)
     if (cx >= 0 && cx < this.canvasWidth && cy >= 0 && cy < this.canvasHeight) {
         this.regionColor(ctx);
         
-        // Context state is set once in main loop, just draw the line
-        ctx.beginPath();
-        ctx.moveTo(this.lastX, this.lastY);
-        ctx.lineTo(this.x, this.y);
-        ctx.stroke();
+        // Add line to shared Path2D instead of stroking individually
+        path.moveTo(this.lastX, this.lastY);
+        path.lineTo(this.x, this.y);
         
         this.spawnSparks(sparks);
         
