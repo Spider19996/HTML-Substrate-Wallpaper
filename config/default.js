@@ -10,6 +10,7 @@ const CONFIG = {
     // VISUAL EFFECTS
     GRAINS:                  64,       // Number of sand grains per region (0 = no sand, higher = more detail but slower)
     SAND_MODE:               'both',   // Sand drawing mode: 'both' (both sides), 'one' (one side), 'none' (disabled)
+    SAND_ALPHA:              0.1,      // Maximum opacity of sand grains (0.0-1.0, higher = more visible/vibrant colors)
     LINE_WIDTH:              1,        // Width of crack lines in pixels
     
     // ANIMATION TIMING
