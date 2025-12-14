@@ -26,11 +26,11 @@ const themeParam = urlParams.get('theme');
 
 // Determine loading mode
 if (themeParam) {
-    if (themeParam.endsWith('.js')) {
-        // Single theme file: ?theme=default-oled.js
+    if (themeParam.includes('/') && themeParam.endsWith('.js')) {
+        // Single theme file with full path: ?theme=bright/forest.js
         loadSingleTheme(themeParam);
-    } else {
-        // Collection rotation: ?theme=oled
+    } else if (!themeParam.includes('/') && !themeParam.endsWith('.js')) {
+        // Collection rotation: ?theme=bright or ?theme=oled
         loadScript('js/theme-manager.js', () => {
             ThemeManager.init(themeParam).then(() => {
                 loadCoreScripts();
@@ -39,50 +39,28 @@ if (themeParam) {
                 loadCoreScripts();
             });
         });
+    } else {
+        console.error('Invalid theme parameter. Use "?theme=bright" for rotation or "?theme=bright/forest.js" for single theme.');
+        loadDefaultConfig();
     }
 } else {
     // No parameters - load default config from bright/
     loadDefaultConfig();
 }
 
-function loadSingleTheme(themeName) {
-    // Try to find theme in collections by searching all folders
-    loadScript('js/theme-manager.js', () => {
-        ThemeManager.loadCollections().then(() => {
-            let foundPath = null;
-            
-            // Search through all collections for the theme file
-            for (const collection in ThemeManager.collections) {
-                const theme = ThemeManager.collections[collection].find(t => 
-                    t.endsWith('/' + themeName)
-                );
-                if (theme) {
-                    foundPath = theme;
-                    break;
-                }
-            }
-            
-            if (foundPath) {
-                const configScript = document.createElement('script');
-                configScript.src = foundPath;
-                configScript.onload = () => {
-                    console.log('Theme loaded:', foundPath);
-                    loadCoreScripts();
-                };
-                configScript.onerror = () => {
-                    console.error('Theme failed to load:', foundPath);
-                    loadDefaultConfig();
-                };
-                document.head.appendChild(configScript);
-            } else {
-                console.error('Theme not found:', themeName);
-                loadDefaultConfig();
-            }
-        }).catch(err => {
-            console.error('Failed to load collections:', err);
-            loadDefaultConfig();
-        });
-    });
+function loadSingleTheme(themePath) {
+    // Load theme directly with full path
+    const configScript = document.createElement('script');
+    configScript.src = 'config/' + themePath;
+    configScript.onload = () => {
+        console.log('Theme loaded:', themePath);
+        loadCoreScripts();
+    };
+    configScript.onerror = () => {
+        console.error('Theme failed to load:', themePath);
+        loadDefaultConfig();
+    };
+    document.head.appendChild(configScript);
 }
 
 function loadDefaultConfig() {
