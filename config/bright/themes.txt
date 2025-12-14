@@ -1,0 +1,6 @@
+# Bright Themes - One filename per line
+# Lines starting with # are comments
+
+default.js
+forest.js
+white-and-black.js
