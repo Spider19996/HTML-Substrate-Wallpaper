@@ -1,9 +1,9 @@
 # Bright Themes - One filename per line
 # Lines starting with # are comments
 
-default.js
-forest.js
-white-and-black.js
-ocean.js
-sunset.js
-pastel.js
+default-bright.js
+forest-bright.js
+white-and-black-bright.js
+ocean-bright.js
+sunset-bright.js
+pastel-bright.js
