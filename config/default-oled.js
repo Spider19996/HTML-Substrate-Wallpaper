@@ -1,7 +1,7 @@
 const CONFIG = {
     // LINE BEHAVIOR
-    STEP_MIN:                1.0,      // Minimum movement speed of cracks in pixels per frame
-    STEP_MAX:                2.5,      // Maximum movement speed of cracks in pixels per frame (creates varied line speeds)
+    STEP_MIN:                0.1,      // Minimum movement speed of cracks in pixels per frame
+    STEP_MAX:                1.5,      // Maximum movement speed of cracks in pixels per frame (creates varied line speeds)
     CRACKS_PER_100K_PIXELS:  1,        // Initial cracks per 100k pixels of screen area (controls pattern density)
     MIN_INITIAL_CRACKS:      2,        // Minimum number of cracks at startup
     MAX_INITIAL_CRACKS:      20,       // Maximum number of cracks at startup
