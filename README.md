@@ -7,8 +7,10 @@ Generative art wallpaper for **KDE Plasma** featuring organic crack patterns wit
 ## Features
 
 - Organic line growth with branching on collision
+- **Variable line speeds** (each crack moves at different speed)
 - Particle effects along lines (sparkler + sand gradients)
-- Multiple themes (Default, OLED, Forest variants)
+- **Theme rotation** - automatically switch themes on reset
+- Multiple theme collections (bright/dark)
 - Performance optimized (object pooling, FPS limiting, idle detection)
 - Fully configurable via config files
 
@@ -36,17 +38,39 @@ Right-click desktop → Configure → Wallpaper Type: **HTML Wallpaper**
 
 Set URL to (replace USERNAME):
 
-**Default:** `file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html`  
-**OLED:** `file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?config=default-oled.js`  
-**Forest:** `file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?config=forest.js`
+**Default (single theme):**  
+`file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html`
+
+**Random bright themes (auto-rotation):**  
+`file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=random-bright`
+
+**Random dark themes (auto-rotation, OLED-friendly):**  
+`file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=random-dark`
+
+**Specific theme:**  
+`file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?config=bright/forest.js`
+
+## Theme Collections
+
+### Bright Themes (`config/bright/`)
+- `default.js` - Colorful vibrant lines on white background
+- `forest.js` - Earth tones with organic feel
+- `white-and-black.js` - Minimalist monochrome (black on white)
+
+### Dark Themes (`config/dark/`)
+- `default-oled.js` - Colorful lines on pure black (OLED optimized)
+- `forest-oled.js` - Forest earth tones on black
+- `black-and-white.js` - White lines on black background
 
 ## Configuration
 
-Open any config file in `config/` - all settings have inline documentation.
+Open any config file in `config/bright/` or `config/dark/` - all settings have inline documentation.
 
 ### Key Settings
 
 ```javascript
+STEP_MIN: 0.1               // Minimum line speed (varied movement)
+STEP_MAX: 1.5               // Maximum line speed
 TARGET_FPS: 60              // Lower = less CPU (30 recommended)
 MAX_CRACKS: 100             // Concurrent lines (50-75 for better performance)
 GRAINS: 64                  // Sand particles (32-48 recommended)
@@ -59,15 +83,25 @@ COLORS: [...]               // Line/particle palette
 
 ### Custom Config
 
-1. Copy `config/default.js` → `config/myconfig.js`
-2. Edit settings
-3. Load: `Substrate.html?config=myconfig.js`
+1. Copy any config from `config/bright/` or `config/dark/`
+2. Create: `config/bright/myconfig.js` or `config/dark/myconfig.js`
+3. Edit settings
+4. Add to theme collection in `js/theme-manager.js` or load directly:
+   `Substrate.html?config=bright/myconfig.js`
+
+## URL Parameters
+
+- `?theme=random-bright` - Auto-rotate through bright themes on each reset
+- `?theme=random-dark` - Auto-rotate through dark/OLED themes
+- `?config=bright/forest.js` - Load single specific theme (no rotation)
 
 ## Performance Tips
 
 For desktop wallpaper use:
 
 ```javascript
+STEP_MIN: 0.1
+STEP_MAX: 1.0
 TARGET_FPS: 30
 MAX_CRACKS: 50-75
 GRAINS: 32-48
@@ -80,7 +114,8 @@ CURSOR_SPARKS_ENABLED: false
 
 **Not loading:** Check absolute path, permissions (`chmod 644 *.html *.js`), console (F12)  
 **Slow:** Lower FPS/MAX_CRACKS/GRAINS, disable anti-aliasing  
-**Config issues:** Check syntax, file location in `config/`, console errors
+**Config issues:** Check syntax, file location in `config/bright/` or `config/dark/`, console errors  
+**Theme rotation not working:** Ensure `js/theme-manager.js` is present and URL uses `?theme=` parameter
 
 ## Credits
 
