@@ -19,6 +19,15 @@ function Crack(startX, startY, canvasWidth, canvasHeight, cgrid, coverageCallbac
     this.canvasHeight = canvasHeight;
     this.cgrid = cgrid;
     this.coverageCallback = coverageCallback;
+    
+    // Each crack gets its own random speed within the configured range
+    if (CONFIG.STEP_MIN !== undefined && CONFIG.STEP_MAX !== undefined) {
+        this.step = CONFIG.STEP_MIN + Math.random() * (CONFIG.STEP_MAX - CONFIG.STEP_MIN);
+    } else {
+        // Fallback to old STEP config for backward compatibility
+        this.step = CONFIG.STEP || 1.5;
+    }
+    
     this.startCrack();
 }
 
@@ -60,7 +69,7 @@ Crack.prototype.startCrack = function() {
         this.degreesDrawn = 0;
         let r = 10 + Math.random() * (this.canvasWidth + this.canvasHeight) / 2;
         if (Math.random() > 0.5) r = -r;
-        const radInc = CONFIG.STEP / r;
+        const radInc = this.step / r;
         this.tInc = radInc * 180 / Math.PI;
         this.ys = r * Math.sin(radInc);
         this.xs = r * (1 - Math.cos(radInc));
@@ -169,8 +178,8 @@ Crack.prototype.move = function(ctx, sparks, fadingIn, fadingOut, makeCrackFunc,
     const tRad = this.t * DEG_TO_RAD;
     
     if (!this.curved) {
-        this.x += CONFIG.STEP * Math.cos(tRad);
-        this.y += CONFIG.STEP * Math.sin(tRad);
+        this.x += this.step * Math.cos(tRad);
+        this.y += this.step * Math.sin(tRad);
     } else {
         const cosT = Math.cos(tRad);
         const sinT = Math.sin(tRad);
