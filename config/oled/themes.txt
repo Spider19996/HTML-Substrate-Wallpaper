@@ -1,5 +1,4 @@
 # OLED Themes - One filename per line
-# Lines starting with # are comments
 
 default-oled.js
 forest-oled.js
