@@ -1,6 +1,5 @@
 # Theme Collections - One folder name per line
 # Each folder must contain a themes.txt file
-# Lines starting with # are comments
 
 bright
 oled
