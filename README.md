@@ -45,7 +45,7 @@ Set URL to (replace USERNAME):
 `file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=random-bright`
 
 **Random dark themes (auto-rotation, OLED-friendly):**  
-`file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=random-dark`
+`file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=random-oled`
 
 **Specific theme:**  
 `file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?config=bright/forest.js`
