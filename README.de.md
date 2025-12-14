@@ -49,19 +49,9 @@ URL setzen (BENUTZERNAME ersetzen):
 
 **Spezifisches Theme (voller Pfad erforderlich):**  
 `file:///home/BENUTZERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=oled/default-oled.js`  
-`file:///home/BENUTZERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=bright/forest.js`
+`file:///home/BENUTZERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=bright/forest-bright.js`
 
-## Theme-Sammlungen
-
-### Helle Themes (`config/bright/`)
-- `default.js` - Bunte lebendige Linien auf weißem Hintergrund
-- `forest.js` - Erdtöne mit organischer Anmutung
-- `white-and-black.js` - Minimalistisch monochrom (schwarz auf weiß)
-
-### Dunkle/OLED-Themes (`config/oled/`)
-- `default-oled.js` - Bunte Linien auf reinem Schwarz (OLED-optimiert)
-- `forest-oled.js` - Wald-Erdtöne auf Schwarz
-- `black-and-white.js` - Weiße Linien auf schwarzem Hintergrund
+Theme-Sammlungen siehe config Ordner
 
 ## Konfiguration
 
