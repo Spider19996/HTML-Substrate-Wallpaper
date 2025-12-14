@@ -3,7 +3,7 @@
 
 default-oled.js
 forest-oled.js
-black-and-white.js
+cobweb-oled.js
 ocean-oled.js
 sunset-oled.js
 pastel-oled.js
