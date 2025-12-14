@@ -10,7 +10,7 @@ Generative art wallpaper for **KDE Plasma** featuring organic crack patterns wit
 - **Variable line speeds** (each crack moves at different speed)
 - Particle effects along lines (sparkler + sand gradients)
 - **Theme rotation** - automatically switch themes on reset
-- Multiple theme collections (bright/dark)
+- Multiple theme collections (bright/OLED)
 - Performance optimized (object pooling, FPS limiting, idle detection)
 - Fully configurable via config files
 
@@ -44,7 +44,7 @@ Set URL to (replace USERNAME):
 **Random bright themes (auto-rotation):**  
 `file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=random-bright`
 
-**Random dark themes (auto-rotation, OLED-friendly):**  
+**Random OLED themes (auto-rotation, OLED-friendly):**  
 `file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=random-oled`
 
 **Specific theme:**  
@@ -57,14 +57,14 @@ Set URL to (replace USERNAME):
 - `forest.js` - Earth tones with organic feel
 - `white-and-black.js` - Minimalist monochrome (black on white)
 
-### Dark Themes (`config/dark/`)
+### OLED Themes (`config/oled/`)
 - `default-oled.js` - Colorful lines on pure black (OLED optimized)
 - `forest-oled.js` - Forest earth tones on black
 - `black-and-white.js` - White lines on black background
 
 ## Configuration
 
-Open any config file in `config/bright/` or `config/dark/` - all settings have inline documentation.
+Open any config file in `config/bright/` or `config/oled/` - all settings have inline documentation.
 
 ### Key Settings
 
@@ -83,8 +83,8 @@ COLORS: [...]               // Line/particle palette
 
 ### Custom Config
 
-1. Copy any config from `config/bright/` or `config/dark/`
-2. Create: `config/bright/myconfig.js` or `config/dark/myconfig.js`
+1. Copy any config from `config/bright/` or `config/oled/`
+2. Create: `config/bright/myconfig.js` or `config/oled/myconfig.js`
 3. Edit settings
 4. Add to theme collection in `js/theme-manager.js` or load directly:
    `Substrate.html?config=bright/myconfig.js`
@@ -92,7 +92,7 @@ COLORS: [...]               // Line/particle palette
 ## URL Parameters
 
 - `?theme=random-bright` - Auto-rotate through bright themes on each reset
-- `?theme=random-dark` - Auto-rotate through dark/OLED themes
+- `?theme=random-oled` - Auto-rotate through oled/OLED themes
 - `?config=bright/forest.js` - Load single specific theme (no rotation)
 
 ## Performance Tips
@@ -114,7 +114,7 @@ CURSOR_SPARKS_ENABLED: false
 
 **Not loading:** Check absolute path, permissions (`chmod 644 *.html *.js`), console (F12)  
 **Slow:** Lower FPS/MAX_CRACKS/GRAINS, disable anti-aliasing  
-**Config issues:** Check syntax, file location in `config/bright/` or `config/dark/`, console errors  
+**Config issues:** Check syntax, file location in `config/bright/` or `config/oled/`, console errors  
 **Theme rotation not working:** Ensure `js/theme-manager.js` is present and URL uses `?theme=` parameter
 
 ## Credits
