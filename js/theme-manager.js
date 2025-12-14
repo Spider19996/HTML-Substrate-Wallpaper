@@ -6,49 +6,97 @@
 const ThemeManager = {
     collections: {}, // Loaded from themes.txt files
     currentTheme: null,
-    rotationMode: null, // null, 'bright', 'dark'
+    rotationMode: null, // null, 'bright', 'dark', etc.
     loadedThemes: new Map(), // Cache loaded theme configs
     onThemeChange: null, // Callback when theme changes
     initialized: false,
     
     /**
-     * Load theme collections from themes.txt files in each config folder
+     * Load theme collections from collections.txt and their themes.txt files
      */
     loadCollections: function() {
-        const folders = ['bright', 'dark'];
-        const promises = folders.map(folder => 
-            fetch(`config/${folder}/themes.txt`)
-                .then(response => {
-                    if (!response.ok) {
-                        console.warn(`No themes.txt found in config/${folder}/`);
-                        return [];
-                    }
-                    return response.text();
-                })
-                .then(text => {
-                    // Parse text file: one filename per line, skip comments and empty lines
-                    const themes = text
-                        .split('\n')
-                        .map(line => line.trim())
-                        .filter(line => line && !line.startsWith('#'))
-                        .map(filename => `config/${folder}/${filename}`);
-                    
-                    if (themes.length > 0) {
-                        this.collections[folder] = themes;
-                        console.log(`Loaded ${themes.length} themes from ${folder}/themes.txt`);
-                    }
-                    return themes;
-                })
-                .catch(error => {
-                    console.warn(`Failed to load themes from ${folder}:`, error);
-                    return [];
-                })
-        );
-        
-        return Promise.all(promises).then(() => {
-            // Fallback if no collections loaded
-            if (Object.keys(this.collections).length === 0) {
-                console.warn('No theme collections loaded, using fallback');
+        // First, load the list of collections
+        return fetch('config/collections.txt')
+            .then(response => {
+                if (!response.ok) {
+                    console.warn('No collections.txt found, using defaults');
+                    return 'bright\ndark';
+                }
+                return response.text();
+            })
+            .then(text => {
+                // Parse collections: one folder name per line
+                const folders = text
+                    .split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line && !line.startsWith('#'));
+                
+                if (folders.length === 0) {
+                    console.warn('No collections defined, using defaults');
+                    return ['bright', 'dark'];
+                }
+                
+                console.log('Found collections:', folders);
+                return folders;
+            })
+            .then(folders => {
+                // Load themes.txt from each collection folder
+                const promises = folders.map(folder => 
+                    fetch(`config/${folder}/themes.txt`)
+                        .then(response => {
+                            if (!response.ok) {
+                                console.warn(`No themes.txt found in config/${folder}/`);
+                                return [];
+                            }
+                            return response.text();
+                        })
+                        .then(text => {
+                            // Parse text file: one filename per line, skip comments and empty lines
+                            const themes = text
+                                .split('\n')
+                                .map(line => line.trim())
+                                .filter(line => line && !line.startsWith('#'))
+                                .map(filename => `config/${folder}/${filename}`);
+                            
+                            if (themes.length > 0) {
+                                this.collections[folder] = themes;
+                                console.log(`Loaded ${themes.length} themes from ${folder}/themes.txt`);
+                            }
+                            return themes;
+                        })
+                        .catch(error => {
+                            console.warn(`Failed to load themes from ${folder}:`, error);
+                            return [];
+                        })
+                );
+                
+                return Promise.all(promises);
+            })
+            .then(() => {
+                // Fallback if no collections loaded
+                if (Object.keys(this.collections).length === 0) {
+                    console.warn('No theme collections loaded, using fallback');
+                    this.collections = {
+                        bright: [
+                            'config/bright/default.js',
+                            'config/bright/forest.js',
+                            'config/bright/white-and-black.js'
+                        ],
+                        dark: [
+                            'config/dark/default-oled.js',
+                            'config/dark/forest-oled.js',
+                            'config/dark/black-and-white.js'
+                        ]
+                    };
+                }
+                
+                this.initialized = true;
+                console.log('Theme collections ready:', Object.keys(this.collections));
+                return this.collections;
+            })
+            .catch(error => {
+                console.error('Failed to load collections:', error);
+                // Fallback
                 this.collections = {
                     bright: [
                         'config/bright/default.js',
@@ -61,11 +109,9 @@ const ThemeManager = {
                         'config/dark/black-and-white.js'
                     ]
                 };
-            }
-            
-            this.initialized = true;
-            return this.collections;
-        });
+                this.initialized = true;
+                return this.collections;
+            });
     },
     
     /**
@@ -73,7 +119,7 @@ const ThemeManager = {
      * Examples:
      *   ?theme=random-bright - Rotate through bright themes
      *   ?theme=random-dark - Rotate through dark themes
-     *   ?theme=forest - Load specific theme (legacy mode)
+     *   ?theme=random-minimal - Rotate through minimal themes (if defined)
      */
     init: function(onThemeChangeCallback) {
         this.onThemeChange = onThemeChangeCallback;
@@ -82,12 +128,18 @@ const ThemeManager = {
             const urlParams = new URLSearchParams(window.location.search);
             const themeParam = urlParams.get('theme');
             
-            if (themeParam === 'random-bright') {
-                this.rotationMode = 'bright';
-                return this.loadRandomTheme('bright');
-            } else if (themeParam === 'random-dark') {
-                this.rotationMode = 'dark';
-                return this.loadRandomTheme('dark');
+            if (themeParam && themeParam.startsWith('random-')) {
+                // Extract collection name: 'random-bright' -> 'bright'
+                const collection = themeParam.substring(7);
+                
+                if (this.collections[collection]) {
+                    this.rotationMode = collection;
+                    return this.loadRandomTheme(collection);
+                } else {
+                    console.error(`Collection not found: ${collection}`);
+                    console.log('Available collections:', Object.keys(this.collections));
+                    return Promise.resolve(window.CONFIG || {});
+                }
             } else if (themeParam) {
                 // Legacy single theme mode
                 this.rotationMode = null;
