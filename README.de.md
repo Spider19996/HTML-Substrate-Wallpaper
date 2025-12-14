@@ -38,17 +38,18 @@ Rechtsklick Desktop → Konfigurieren → Hintergrundtyp: **HTML Wallpaper**
 
 URL setzen (BENUTZERNAME ersetzen):
 
-**Standard (einzelnes Theme):**  
+**Standard (einzelnes Theme aus bright-Sammlung):**  
 `file:///home/BENUTZERNAME/.local/share/wallpapers/substrate/Substrate.html`
 
 **Zufällige helle Themes (Auto-Rotation):**  
-`file:///home/BENUTZERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=random-bright`
+`file:///home/BENUTZERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=bright`
 
-**Zufällige dunkle Themes (Auto-Rotation, OLED-optimiert):**  
-`file:///home/BENUTZERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=random-oled`
+**Zufällige dunkle/OLED-Themes (Auto-Rotation):**  
+`file:///home/BENUTZERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=oled`
 
-**Spezifisches Theme:**  
-`file:///home/BENUTZERNAME/.local/share/wallpapers/substrate/Substrate.html?config=bright/forest.js`
+**Spezifisches Theme (wird automatisch in Collections gesucht):**  
+`file:///home/BENUTZERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=default-oled.js`  
+`file:///home/BENUTZERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=forest.js`
 
 ## Theme-Sammlungen
 
@@ -57,7 +58,7 @@ URL setzen (BENUTZERNAME ersetzen):
 - `forest.js` - Erdtöne mit organischer Anmutung
 - `white-and-black.js` - Minimalistisch monochrom (schwarz auf weiß)
 
-### Dunkle Themes (`config/oled/`)
+### Dunkle/OLED-Themes (`config/oled/`)
 - `default-oled.js` - Bunte Linien auf reinem Schwarz (OLED-optimiert)
 - `forest-oled.js` - Wald-Erdtöne auf Schwarz
 - `black-and-white.js` - Weiße Linien auf schwarzem Hintergrund
@@ -69,7 +70,7 @@ URL setzen (BENUTZERNAME ersetzen):
 ### Wichtige Einstellungen
 
 ```javascript
-STEP_MIN: 0.1               // Minimale Liniengeschwindigkeit (variierteBewegung)
+STEP_MIN: 0.1               // Minimale Liniengeschwindigkeit (variierte Bewegung)
 STEP_MAX: 1.5               // Maximale Liniengeschwindigkeit
 TARGET_FPS: 60              // Niedriger = weniger CPU (30 empfohlen)
 MAX_CRACKS: 100             // Gleichzeitige Linien (50-75 für bessere Performance)
@@ -86,14 +87,15 @@ COLORS: [...]               // Linien-/Partikel-Palette
 1. Kopiere eine Config aus `config/bright/` oder `config/oled/`
 2. Erstelle: `config/bright/myconfig.js` oder `config/oled/myconfig.js`
 3. Einstellungen bearbeiten
-4. Zur Theme-Sammlung in `js/theme-manager.js` hinzufügen oder direkt laden:
-   `Substrate.html?config=bright/myconfig.js`
+4. Zur Theme-Sammlung in `config/*/themes.txt` hinzufügen, um es in die Rotation aufzunehmen, oder direkt laden über:
+
+   `Substrate.html?theme=myconfig.js`
 
 ## URL-Parameter
 
-- `?theme=random-bright` - Auto-Rotation durch helle Themes bei jedem Reset
-- `?theme=random-oled` - Auto-Rotation durch dunkle/OLED-Themes
-- `?config=bright/forest.js` - Einzelnes spezifisches Theme laden (keine Rotation)
+- `?theme=bright` - Auto-Rotation durch helle Themes bei jedem Reset
+- `?theme=oled` - Auto-Rotation durch dunkle/OLED-Themes
+- `?theme=default-oled.js` - Einzelnes spezifisches Theme laden (keine Rotation)
 
 ## Performance-Tipps
 
@@ -115,7 +117,7 @@ CURSOR_SPARKS_ENABLED: false
 **Lädt nicht:** Prüfe absoluten Pfad, Berechtigungen (`chmod 644 *.html *.js`), Konsole (F12)  
 **Langsam:** FPS/MAX_CRACKS/GRAINS senken, Anti-Aliasing deaktivieren  
 **Config-Probleme:** Syntax prüfen, Datei-Ort in `config/bright/` oder `config/oled/`, Konsolen-Fehler  
-**Theme-Rotation funktioniert nicht:** Stelle sicher dass `js/theme-manager.js` vorhanden ist und URL den `?theme=` Parameter nutzt
+**Theme-Rotation funktioniert nicht:** Stelle sicher, dass `js/theme-manager.js` und `config/*/themes.txt` existieren und die URL den `?theme=` Parameter nutzt
 
 ## Credits
 
