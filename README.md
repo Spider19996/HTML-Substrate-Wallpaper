@@ -38,17 +38,18 @@ Right-click desktop → Configure → Wallpaper Type: **HTML Wallpaper**
 
 Set URL to (replace USERNAME):
 
-**Default (single theme):**  
+**Default (single theme from bright collection):**  
 `file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html`
 
 **Random bright themes (auto-rotation):**  
-`file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=random-bright`
+`file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=bright`
 
 **Random OLED themes (auto-rotation, OLED-friendly):**  
-`file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=random-oled`
+`file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=oled`
 
-**Specific theme:**  
-`file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?config=bright/forest.js`
+**Specific theme (auto-detected in collections):**  
+`file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=default-oled.js`  
+`file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=forest.js`
 
 ## Theme Collections
 
@@ -86,14 +87,15 @@ COLORS: [...]               // Line/particle palette
 1. Copy any config from `config/bright/` or `config/oled/`
 2. Create: `config/bright/myconfig.js` or `config/oled/myconfig.js`
 3. Edit settings
-4. Add to theme collection in `js/theme-manager.js` or load directly:
-   `Substrate.html?config=bright/myconfig.js`
+4. Add to theme collection in `config/*/themes.txt` to include in rotation, or load directly via:
+
+   `Substrate.html?theme=myconfig.js`
 
 ## URL Parameters
 
-- `?theme=random-bright` - Auto-rotate through bright themes on each reset
-- `?theme=random-oled` - Auto-rotate through oled/OLED themes
-- `?config=bright/forest.js` - Load single specific theme (no rotation)
+- `?theme=bright` - Auto-rotate through bright themes on each reset
+- `?theme=oled` - Auto-rotate through OLED themes
+- `?theme=default-oled.js` - Load single specific theme (no rotation)
 
 ## Performance Tips
 
@@ -115,7 +117,7 @@ CURSOR_SPARKS_ENABLED: false
 **Not loading:** Check absolute path, permissions (`chmod 644 *.html *.js`), console (F12)  
 **Slow:** Lower FPS/MAX_CRACKS/GRAINS, disable anti-aliasing  
 **Config issues:** Check syntax, file location in `config/bright/` or `config/oled/`, console errors  
-**Theme rotation not working:** Ensure `js/theme-manager.js` is present and URL uses `?theme=` parameter
+**Theme rotation not working:** Ensure `js/theme-manager.js` and `config/*/themes.txt` exist and URL uses `?theme=` parameter
 
 ## Credits
 
