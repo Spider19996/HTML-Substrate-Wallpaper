@@ -49,19 +49,9 @@ Set URL to (replace USERNAME):
 
 **Specific theme (full path required):**  
 `file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=oled/default-oled.js`  
-`file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=bright/forest.js`
+`file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=bright/forest-bright.js`
 
-## Theme Collections
-
-### Bright Themes (`config/bright/`)
-- `default.js` - Colorful vibrant lines on white background
-- `forest.js` - Earth tones with organic feel
-- `white-and-black.js` - Minimalist monochrome (black on white)
-
-### OLED Themes (`config/oled/`)
-- `default-oled.js` - Colorful lines on pure black (OLED optimized)
-- `forest-oled.js` - Forest earth tones on black
-- `black-and-white.js` - White lines on black background
+# Theme Collections see config folder
 
 ## Configuration
 
