@@ -1,6 +1,11 @@
-# Bright Themes - One filename per line
+# OLED Themes - One filename per line
 # Lines starting with # are comments
 
 default-oled.js
 forest-oled.js
 black-and-white.js
+ocean-oled.js
+sunset-oled.js
+pastel-oled.js
+fire-oled.js
+ice-oled.js
