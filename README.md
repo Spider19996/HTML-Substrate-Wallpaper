@@ -47,9 +47,9 @@ Set URL to (replace USERNAME):
 **Random OLED themes (auto-rotation, OLED-friendly):**  
 `file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=oled`
 
-**Specific theme (auto-detected in collections):**  
-`file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=default-oled.js`  
-`file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=forest.js`
+**Specific theme (full path required):**  
+`file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=oled/default-oled.js`  
+`file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=bright/forest.js`
 
 ## Theme Collections
 
@@ -89,13 +89,13 @@ COLORS: [...]               // Line/particle palette
 3. Edit settings
 4. Add to theme collection in `config/*/themes.txt` to include in rotation, or load directly via:
 
-   `Substrate.html?theme=myconfig.js`
+   `Substrate.html?theme=bright/myconfig.js`
 
 ## URL Parameters
 
 - `?theme=bright` - Auto-rotate through bright themes on each reset
 - `?theme=oled` - Auto-rotate through OLED themes
-- `?theme=default-oled.js` - Load single specific theme (no rotation)
+- `?theme=bright/forest.js` - Load single specific theme (full path required, no rotation)
 
 ## Performance Tips
 
