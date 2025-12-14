@@ -6,7 +6,7 @@
 const ThemeManager = {
     collections: {}, // Loaded from themes.txt files
     currentTheme: null,
-    rotationMode: null, // null, 'bright', 'dark', etc.
+    rotationMode: null, // null, 'bright', 'oled', etc.
     loadedThemes: new Map(), // Cache loaded theme configs
     onThemeChange: null, // Callback when theme changes
     initialized: false,
