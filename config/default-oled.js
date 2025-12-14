@@ -55,10 +55,10 @@ const CONFIG = {
     BG_COLOR:                [0, 0, 0],       // Background color [R, G, B] (0-255 each)
     COLORS: [                                 // Line, sand and spark color palette (randomly selected)
         [0, 255, 255],   // Cyan
-        [255, 0, 255],   // Magenta
+        [255, 0, 0],   // Magenta
         [255, 255, 0],   // Yellow
         [0, 255, 128],   // Spring Green
         [255, 128, 0],   // Orange
-        [128, 0, 255]    // Purple
+        [0, 0, 255]    // Purple
     ]
 };
