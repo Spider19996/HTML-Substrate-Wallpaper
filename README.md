@@ -51,7 +51,7 @@ Set URL to (replace USERNAME):
 `file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=oled/default-oled.js`  
 `file:///home/USERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=bright/forest-bright.js`
 
-# Theme Collections see config folder
+Theme Collections see config folder
 
 ## Configuration
 
