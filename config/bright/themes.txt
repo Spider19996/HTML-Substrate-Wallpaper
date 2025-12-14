@@ -4,3 +4,6 @@
 default.js
 forest.js
 white-and-black.js
+ocean.js
+sunset.js
+pastel.js
