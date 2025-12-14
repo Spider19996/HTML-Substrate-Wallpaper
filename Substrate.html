@@ -11,7 +11,7 @@ body { margin: 0; padding: 0; overflow: hidden; background: #fff; }
     top: 0; 
     left: 0;
     will-change: contents;
-    transform: translateZ(0); /* Force GPU layer */
+    transform: translateZ(0);
 }
 #glowCanvas { pointer-events: none; }
 </style>
@@ -20,16 +20,58 @@ body { margin: 0; padding: 0; overflow: hidden; background: #fff; }
 <CANVAS id="canvas"></CANVAS>
 <CANVAS id="glowCanvas"></CANVAS>
 <script>
-// Load config first, then load other scripts
+// URL parameter parsing
 const urlParams = new URLSearchParams(window.location.search);
-let configFile = urlParams.get('config') || 'config/default.js';
-if (!configFile.startsWith('config/')) configFile = 'config/' + configFile;
+const themeParam = urlParams.get('theme');
+const configParam = urlParams.get('config');
 
-const configScript = document.createElement('script');
-configScript.src = configFile;
-configScript.onload = () => {
-    console.log('Config loaded:', configFile);
-    // Load remaining scripts after config is loaded
+// Determine loading mode
+if (themeParam) {
+    // New theme rotation mode
+    loadScript('js/theme-manager.js', () => {
+        ThemeManager.init().then(() => {
+            loadCoreScripts();
+        }).catch(err => {
+            console.error('Theme manager failed:', err);
+            loadCoreScripts();
+        });
+    });
+} else if (configParam) {
+    // Legacy single config mode
+    let configFile = configParam;
+    if (!configFile.startsWith('config/')) configFile = 'config/' + configFile;
+    
+    const configScript = document.createElement('script');
+    configScript.src = configFile;
+    configScript.onload = () => {
+        console.log('Config loaded:', configFile);
+        loadCoreScripts();
+    };
+    configScript.onerror = () => {
+        console.error('Config failed to load:', configFile);
+        loadDefaultConfig();
+    };
+    document.head.appendChild(configScript);
+} else {
+    // No parameters - load default config from bright/
+    loadDefaultConfig();
+}
+
+function loadDefaultConfig() {
+    const configScript = document.createElement('script');
+    configScript.src = 'config/bright/default.js';
+    configScript.onload = () => {
+        console.log('Default config loaded');
+        loadCoreScripts();
+    };
+    configScript.onerror = () => {
+        console.error('Default config failed to load');
+        loadCoreScripts(); // Continue anyway
+    };
+    document.head.appendChild(configScript);
+}
+
+function loadCoreScripts() {
     loadScript('js/config-validator.js', () => {
         loadScript('js/utils.js', () => {
             loadScript('js/spark.js', () => {
@@ -41,24 +83,7 @@ configScript.onload = () => {
             });
         });
     });
-};
-configScript.onerror = () => {
-    console.error('Config failed to load:', configFile);
-    console.warn('Continuing with default config');
-    // Still load other scripts even if config fails
-    loadScript('js/config-validator.js', () => {
-        loadScript('js/utils.js', () => {
-            loadScript('js/spark.js', () => {
-                loadScript('js/crack.js', () => {
-                    loadScript('js/main.js', () => {
-                        console.log('All scripts loaded with default config');
-                    });
-                });
-            });
-        });
-    });
-};
-document.head.appendChild(configScript);
+}
 
 function loadScript(src, callback) {
     const script = document.createElement('script');
