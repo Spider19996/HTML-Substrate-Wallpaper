@@ -47,9 +47,9 @@ URL setzen (BENUTZERNAME ersetzen):
 **Zufällige dunkle/OLED-Themes (Auto-Rotation):**  
 `file:///home/BENUTZERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=oled`
 
-**Spezifisches Theme (wird automatisch in Collections gesucht):**  
-`file:///home/BENUTZERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=default-oled.js`  
-`file:///home/BENUTZERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=forest.js`
+**Spezifisches Theme (voller Pfad erforderlich):**  
+`file:///home/BENUTZERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=oled/default-oled.js`  
+`file:///home/BENUTZERNAME/.local/share/wallpapers/substrate/Substrate.html?theme=bright/forest.js`
 
 ## Theme-Sammlungen
 
@@ -89,13 +89,13 @@ COLORS: [...]               // Linien-/Partikel-Palette
 3. Einstellungen bearbeiten
 4. Zur Theme-Sammlung in `config/*/themes.txt` hinzufügen, um es in die Rotation aufzunehmen, oder direkt laden über:
 
-   `Substrate.html?theme=myconfig.js`
+   `Substrate.html?theme=bright/myconfig.js`
 
 ## URL-Parameter
 
 - `?theme=bright` - Auto-Rotation durch helle Themes bei jedem Reset
 - `?theme=oled` - Auto-Rotation durch dunkle/OLED-Themes
-- `?theme=default-oled.js` - Einzelnes spezifisches Theme laden (keine Rotation)
+- `?theme=bright/forest.js` - Einzelnes spezifisches Theme laden (voller Pfad erforderlich, keine Rotation)
 
 ## Performance-Tipps
 
