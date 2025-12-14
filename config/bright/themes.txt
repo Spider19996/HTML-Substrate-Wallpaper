@@ -1,5 +1,4 @@
 # Bright Themes - One filename per line
-# Lines starting with # are comments
 
 default-bright.js
 forest-bright.js
