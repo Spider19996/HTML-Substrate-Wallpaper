@@ -3,7 +3,7 @@
 
 default-bright.js
 forest-bright.js
-white-and-black-bright.js
+cobweb-bright.js
 ocean-bright.js
 sunset-bright.js
 pastel-bright.js
