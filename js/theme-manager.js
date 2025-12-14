@@ -20,7 +20,7 @@ const ThemeManager = {
             .then(response => {
                 if (!response.ok) {
                     console.warn('No collections.txt found, using defaults');
-                    return 'bright\ndark';
+                    return 'bright\noled';
                 }
                 return response.text();
             })
@@ -33,7 +33,7 @@ const ThemeManager = {
                 
                 if (folders.length === 0) {
                     console.warn('No collections defined, using defaults');
-                    return ['bright', 'dark'];
+                    return ['bright', 'oled'];
                 }
                 
                 console.log('Found collections:', folders);
@@ -82,10 +82,10 @@ const ThemeManager = {
                             'config/bright/forest.js',
                             'config/bright/white-and-black.js'
                         ],
-                        dark: [
-                            'config/dark/default-oled.js',
-                            'config/dark/forest-oled.js',
-                            'config/dark/black-and-white.js'
+                        oled: [
+                            'config/oled/default-oled.js',
+                            'config/oled/forest-oled.js',
+                            'config/oled/black-and-white.js'
                         ]
                     };
                 }
@@ -103,10 +103,10 @@ const ThemeManager = {
                         'config/bright/forest.js',
                         'config/bright/white-and-black.js'
                     ],
-                    dark: [
-                        'config/dark/default-oled.js',
-                        'config/dark/forest-oled.js',
-                        'config/dark/black-and-white.js'
+                    oled: [
+                        'config/oled/default-oled.js',
+                        'config/oled/forest-oled.js',
+                        'config/oled/black-and-white.js'
                     ]
                 };
                 this.initialized = true;
@@ -115,40 +115,22 @@ const ThemeManager = {
     },
     
     /**
-     * Initialize theme manager from URL parameters
+     * Initialize theme manager for collection rotation
+     * @param {string} collection - Collection name (e.g., 'bright', 'oled')
      * Examples:
-     *   ?theme=random-bright - Rotate through bright themes
-     *   ?theme=random-dark - Rotate through dark themes
-     *   ?theme=random-minimal - Rotate through minimal themes (if defined)
+     *   ?theme=bright - Rotate through bright themes
+     *   ?theme=oled - Rotate through oled themes
      */
-    init: function(onThemeChangeCallback) {
-        this.onThemeChange = onThemeChangeCallback;
-        
+    init: function(collection) {
         return this.loadCollections().then(() => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const themeParam = urlParams.get('theme');
-            
-            if (themeParam && themeParam.startsWith('random-')) {
-                // Extract collection name: 'random-bright' -> 'bright'
-                const collection = themeParam.substring(7);
-                
-                if (this.collections[collection]) {
-                    this.rotationMode = collection;
-                    return this.loadRandomTheme(collection);
-                } else {
-                    console.error(`Collection not found: ${collection}`);
-                    console.log('Available collections:', Object.keys(this.collections));
-                    return Promise.resolve(window.CONFIG || {});
-                }
-            } else if (themeParam) {
-                // Legacy single theme mode
-                this.rotationMode = null;
-                return this.loadSpecificTheme(themeParam);
+            if (this.collections[collection]) {
+                this.rotationMode = collection;
+                return this.loadRandomTheme(collection);
+            } else {
+                console.error(`Collection not found: ${collection}`);
+                console.log('Available collections:', Object.keys(this.collections));
+                return Promise.resolve(window.CONFIG || {});
             }
-            
-            // Default: no rotation, use whatever CONFIG is loaded in HTML
-            this.rotationMode = null;
-            return Promise.resolve(window.CONFIG || {});
         });
     },
     
@@ -172,25 +154,6 @@ const ThemeManager = {
         }
         
         return this.loadThemeScript(nextTheme);
-    },
-    
-    /**
-     * Load a specific theme by name (legacy mode)
-     */
-    loadSpecificTheme: function(themeName) {
-        // Try to find theme in collections
-        for (const collection in this.collections) {
-            const theme = this.collections[collection].find(t => 
-                t.includes(themeName + '.js')
-            );
-            if (theme) {
-                return this.loadThemeScript(theme);
-            }
-        }
-        
-        // Fallback: try direct path
-        const themePath = `config/${themeName}.js`;
-        return this.loadThemeScript(themePath);
     },
     
     /**
