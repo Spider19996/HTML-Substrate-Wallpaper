@@ -1,6 +1,7 @@
 const CONFIG = {
     // LINE BEHAVIOR
-    STEP:                    1.5,      // Movement speed of cracks in pixels per frame (higher = faster lines)
+    STEP_MIN:                1.0,      // Minimum movement speed of cracks in pixels per frame
+    STEP_MAX:                2.5,      // Maximum movement speed of cracks in pixels per frame (creates varied line speeds)
     CRACKS_PER_100K_PIXELS:  1,        // Initial cracks per 100k pixels of screen area (controls pattern density)
     MIN_INITIAL_CRACKS:      2,        // Minimum number of cracks at startup
     MAX_INITIAL_CRACKS:      20,       // Maximum number of cracks at startup
@@ -9,8 +10,8 @@ const CONFIG = {
     
     // VISUAL EFFECTS
     GRAINS:                  64,       // Number of sand grains per region (0 = no sand, higher = more detail but slower)
-    SAND_MODE:               'one',   // Sand drawing mode: 'both' (both sides), 'one' (one side), 'none' (disabled)
-    SAND_ALPHA:              0.3,      // Maximum opacity of sand grains (0.0-1.0, higher = more visible/vibrant colors) - OLED optimized
+    SAND_MODE:               'both',   // Sand drawing mode: 'both' (both sides), 'one' (one side), 'none' (disabled)
+    SAND_ALPHA:              0.1,      // Maximum opacity of sand grains (0.0-1.0, higher = more visible/vibrant colors)
     LINE_WIDTH:              1,        // Width of crack lines in pixels
     ANTI_ALIASING:           true,     // Enable smooth anti-aliased rendering (true = better quality, false = better performance)
     
@@ -45,20 +46,20 @@ const CONFIG = {
     CURSOR_SPARK_RATE:       2,        // Number of cursor sparks spawned per frame when enabled
     
     // FPS SETTINGS
-    FPS_COUNTER_ENABLED:     false,     // Display FPS counter on screen
+    FPS_COUNTER_ENABLED:     false,    // Display FPS counter on screen
     FPS_COUNTER_POSITION:    'top-left', // Counter position: 'top-left' or 'top-right'
     FPS_COUNTER_SIZE:        14,       // Font size of FPS counter in pixels
     FPS_COUNTER_COLOR:       [255, 255, 255], // RGB color of FPS counter text [R, G, B] (0-255 each)
-    TARGET_FPS:              30,       // Maximum framerate limit (0 = unlimited, lower = less CPU/GPU usage)
+    TARGET_FPS:              60,       // Maximum framerate limit (0 = unlimited, lower = less CPU/GPU usage)
     
-    // COLORS (OLED optimized - bright colors on black background for power savings)
-    BG_COLOR:                [0, 0, 0],       // Background color [R, G, B] (0-255 each)
-    COLORS: [                                 // Line, sand and spark color palette (randomly selected)
-        [0, 255, 255],   // Cyan
-        [255, 0, 0],   // Magenta
+    // COLORS
+    BG_COLOR:                [0, 0, 0], // Background color [R, G, B] (0-255 each) - Black for OLED
+    COLORS: [                           // Line, sand and spark color palette (randomly selected)
+        [255, 50, 50],   // Red
+        [50, 255, 50],   // Green
+        [50, 50, 255],   // Blue
         [255, 255, 0],   // Yellow
-        [0, 255, 128],   // Spring Green
-        [255, 128, 0],   // Orange
-        [0, 0, 255]    // Purple
+        [255, 0, 255],   // Magenta
+        [0, 255, 255]    // Cyan
     ]
 };
