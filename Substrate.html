@@ -23,38 +23,66 @@ body { margin: 0; padding: 0; overflow: hidden; background: #fff; }
 // URL parameter parsing
 const urlParams = new URLSearchParams(window.location.search);
 const themeParam = urlParams.get('theme');
-const configParam = urlParams.get('config');
 
 // Determine loading mode
 if (themeParam) {
-    // New theme rotation mode
-    loadScript('js/theme-manager.js', () => {
-        ThemeManager.init().then(() => {
-            loadCoreScripts();
-        }).catch(err => {
-            console.error('Theme manager failed:', err);
-            loadCoreScripts();
+    if (themeParam.endsWith('.js')) {
+        // Single theme file: ?theme=default-oled.js
+        loadSingleTheme(themeParam);
+    } else {
+        // Collection rotation: ?theme=oled
+        loadScript('js/theme-manager.js', () => {
+            ThemeManager.init(themeParam).then(() => {
+                loadCoreScripts();
+            }).catch(err => {
+                console.error('Theme manager failed:', err);
+                loadCoreScripts();
+            });
         });
-    });
-} else if (configParam) {
-    // Legacy single config mode
-    let configFile = configParam;
-    if (!configFile.startsWith('config/')) configFile = 'config/' + configFile;
-    
-    const configScript = document.createElement('script');
-    configScript.src = configFile;
-    configScript.onload = () => {
-        console.log('Config loaded:', configFile);
-        loadCoreScripts();
-    };
-    configScript.onerror = () => {
-        console.error('Config failed to load:', configFile);
-        loadDefaultConfig();
-    };
-    document.head.appendChild(configScript);
+    }
 } else {
     // No parameters - load default config from bright/
     loadDefaultConfig();
+}
+
+function loadSingleTheme(themeName) {
+    // Try to find theme in collections by searching all folders
+    loadScript('js/theme-manager.js', () => {
+        ThemeManager.loadCollections().then(() => {
+            let foundPath = null;
+            
+            // Search through all collections for the theme file
+            for (const collection in ThemeManager.collections) {
+                const theme = ThemeManager.collections[collection].find(t => 
+                    t.endsWith('/' + themeName)
+                );
+                if (theme) {
+                    foundPath = theme;
+                    break;
+                }
+            }
+            
+            if (foundPath) {
+                const configScript = document.createElement('script');
+                configScript.src = foundPath;
+                configScript.onload = () => {
+                    console.log('Theme loaded:', foundPath);
+                    loadCoreScripts();
+                };
+                configScript.onerror = () => {
+                    console.error('Theme failed to load:', foundPath);
+                    loadDefaultConfig();
+                };
+                document.head.appendChild(configScript);
+            } else {
+                console.error('Theme not found:', themeName);
+                loadDefaultConfig();
+            }
+        }).catch(err => {
+            console.error('Failed to load collections:', err);
+            loadDefaultConfig();
+        });
+    });
 }
 
 function loadDefaultConfig() {
