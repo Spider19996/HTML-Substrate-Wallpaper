@@ -78,6 +78,10 @@ function loadCoreScripts() {
                 loadScript('js/crack.js', () => {
                     loadScript('js/main.js', () => {
                         console.log('All scripts loaded');
+                        // Manually trigger initialization after all scripts are loaded
+                        if (window.onload) {
+                            window.onload();
+                        }
                     });
                 });
             });
